@@ -1,10 +1,51 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<glib.h>
+
+
+struct op_code{
+             int opcode;
+             int key;
+             char *value;
+};
+
+GHashTable* key_value_store;
+
+int create_hash_table(){
+   key_value_store =  g_hash_table_new(g_str_hash,g_str_equal);
+   if(key_value_store == NULL) return -1;
+   else return 0;
+}
+
+
+int insert_key_value_into_store(struct op_code* op_instance){
+     char *buffer;
+     buffer = (char*)malloc(10);
+     sprintf(buffer,"%d",op_instance->key);
+
+     gpointer key = (gpointer)buffer;
+     gpointer value = (gpointer)op_instance->value;
+
+     g_hash_table_insert(key_value_store,key,value);
+}
+
+char* lookup_store_for_key(int key){
+    
+     gpointer value;
+     char *buffer = (char *)malloc(10);
+     sprintf(buffer,"%d",key);
+     gpointer key_temp = (gpointer)buffer;
+     value = g_hash_table_lookup(key_value_store,key_temp);
+     free(buffer);
+     return (char *)value;
+}
+
 /*
+
 int insert_into_store(struct op_code* op_instance){
      int index = hash_key_to_index(key);
-// insert entry use glib api
+
 
 }
 int delete_from_store(struct op_code* op_instance){
@@ -58,12 +99,13 @@ int create_message_LOOKUP_RESULT(int key, char *value, char **message){
 		   *message = buffer;
 		   return 0;
 }
+/*
 struct op_code{
 	     int opcode;
    	     int key;
  	     char *value;
 };
-
+*/
 // INSERT, DELETE, UPDATE, GET messages are possible
 int extract_message_op(char *message, struct op_code** instance){
 	           char *original = (char *)malloc(strlen(message));
