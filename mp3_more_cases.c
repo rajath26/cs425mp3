@@ -60,7 +60,17 @@ int hash_key_to_node(int key){
 }
 */
 
+/*
+int create_migrate_key_message(){
 
+}
+*/
+
+/*
+int extract_migrate_key_message(){
+
+}
+*/
 
 
 
