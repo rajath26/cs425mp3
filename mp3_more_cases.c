@@ -18,7 +18,8 @@ int create_hash_table(){
    else return 0;
 }
 
-
+// send an opcode instance which is dynamically allocated
+//
 int insert_key_value_into_store(struct op_code* op_instance){
      char *buffer;
      buffer = (char*)malloc(10);
@@ -470,7 +471,16 @@ void main(){
    printf("opcode:%d\n",temp->opcode);
  //  free(msg2);
 
-   free(temp);
+   
+
+   printf("===================================================\n");
+   printf("====================hash table creation============\n");
+   
+   create_hash_table();
+   insert_key_value_into_store(temp);
+   char *value123 = lookup_store_for_key(1234);
+   printf("%s",value123);
+
 }          	
 		   
  
