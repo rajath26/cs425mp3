@@ -42,29 +42,27 @@ char* lookup_store_for_key(int key){
      return (char *)value;
 }
 
+int delete_key_value_from_store(int key){
+     int status;
+     char *buffer = (char *)malloc(10);
+     sprintf(buffer,"%d",key);
+     status = g_hash_table_remove(key_value_store,buffer);
+     if(status) 
+          return 0; //success
+     else
+          return -1; //failure
+}
+
 /*
-
-int insert_into_store(struct op_code* op_instance){
-     int index = hash_key_to_index(key);
-
-
-}
-int delete_from_store(struct op_code* op_instance){
-      int index = hash_key_to_index(key);
-// delete entry using glib api
-
-}
-int update_store_for_key(struct op_code){
-      int index = hash_key_to_index(key);
-// use api to fetch entry and update value using strcat
-
-}
-int lookup_store_for_key(struct op_code){
-       int index = hash_key_to_index(key);
-// use api to lookup entry and return value
-
+int hash_key_to_node(int key){
+      // write logic for this  [it has to iterate through all the table entries and find the nearest match] 
+      
 }
 */
+
+
+
+
 
 //upto the caller to free the buffers in create_message_X cases
 int create_message_INSERT(int key, char *value, char **message){
