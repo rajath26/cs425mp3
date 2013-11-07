@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<glib.h>
 #include"logger.c"
 #include"../inc/message.h"
 /////////////////////////////////////////////////////////////////////////////////////
@@ -221,12 +222,18 @@ int initialize_table(char *port,char *ip,int host_id, char *tcp_port)
          struct timeval start;
          gettimeofday(&start,NULL);
          char buffer[70];
-         sprintf(buffer,"%d_%ld",hostId,start.tv_sec);
+ //        sprintf(buffer,"%d_%ld",hostId,start.tv_sec);
 
-         strcpy(hb_table[i].host_id,buffer); // initialize host_id
+ //        strcpy(hb_table[i].host_id,buffer); // initialize host_id
+
          strcpy(hb_table[i].IP,ipAddr); // initialize ip
          printToLog(logF, "I HOPE THI IS NOT TRUNCATED", hb_table[i].IP);
          strcpy(hb_table[i].port,portNo);  // initialize port
+
+         sprintf(buffer,"%s#%s",hb_table[i].IP,hb_table[i].port); // combine IP and port to get the hash value
+         int hash_key = g_str_hash(buffer)%360;
+         sprintf(hb_table[i].host_id,"%d",hash_key);         
+
          strcpy(hb_table[i].tcp_port,tcp_port_no);
          hb_table[i].hb_count=1;
          strcpy(hb_table[i].time_stamp,"0");

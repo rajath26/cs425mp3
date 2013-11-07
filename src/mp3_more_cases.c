@@ -190,13 +190,16 @@ int extract_message_op(char *message, struct op_code** instance){
 
 void main(){
 
+
   // create_message_XXXX examples
 
    char *msg=0x0;
-   char *value = "hello world";
+   char *value = "192.145.1.1#4002";
    int key = 100;
+   int key1 = g_str_hash(value);
+   printf("hash value for hello world is %d\n",key1%360);
 
-
+/*
    create_message_INSERT(100,value,&msg);
    printf("%s\n",msg);
    free(msg);
@@ -488,6 +491,8 @@ void main(){
    insert_key_value_into_store(temp);
    char *value123 = lookup_store_for_key(1234);
    printf("%s",value123);
+*/
+
 
 }          	
 		   
