@@ -10,7 +10,29 @@ struct op_code{
              char *value;
 };
 
+
+GQueue* temp_list=0x0;
 GHashTable* key_value_store;
+
+int create_temp_list()
+{
+   temp_list =  g_queue_new();
+}
+
+
+int insert_into_temp_list(int key, char *value)
+{
+   struct op_code* temp = (struct op_code *)malloc(sizeof(struct op_code));  
+   temp->key = key;
+   temp->value = value;
+   g_queue_push_tail(temp_list,(gpointer)temp);     
+}
+
+struct op_code* retrieve_from_temp_list()
+{
+   struct op_code* temp = g_queue_pop_head(temp_list);
+   return temp;
+}
 
 int create_hash_table(){
    key_value_store =  g_hash_table_new(g_str_hash,g_str_equal);
@@ -52,6 +74,8 @@ int delete_key_value_from_store(int key){
      else
           return -1; //failure
 }
+
+
 
 /*
 int hash_key_to_node(int key){
