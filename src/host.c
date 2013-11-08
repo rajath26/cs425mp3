@@ -36,12 +36,13 @@
  *            (int) argc - number of command line arguments
  *            (char *) argv - two command line arguments apart 
  *                            from argv[0] namely:
- *                            i) Port No
- *                            ii) Ip Address of host
- *                            iii) Host Type 
+ *                            i) UDP port no
+ *                            ii) TCP port no 
+ *                            iii) Ip Address of host
+ *                            iv) Host Type 
  *                                 "leader" -> Leader Node
  *                                 "member" -> Member Node
- *                            iv) Host ID
+ *                            v) Host ID
  * 
  * RETURN:
  * (int) ZERO if success
@@ -58,7 +59,7 @@ int CLA_checker(int argc, char *argv[])
     if ( argc != NUM_OF_CL_ARGS )
     {
         printf("\nInvalid usage\n");
-        printf("\nUsage information: %s <port_no> <ip_address> <host_type> <host_id>", argv[0]);
+        printf("\nUsage information: %s <UDP_port_no> <TCP_port_no> <ip_address> <host_type> <host_id>", argv[0]);
         rc = ERROR;
         goto rtn;
     }
@@ -70,10 +71,11 @@ int CLA_checker(int argc, char *argv[])
 } // End of CLA_checker()
 
 /*****************************************************************
- * NAME: setUpUDP 
+ * NAME: setUpPorts 
  *
  * DESCRIPTION: This function is designed to create a UDP and 
- *              bind to the port 
+ *              bind to the port and to create another TCP port
+ *              and bind to that port 
  *              
  * PARAMETERS: 
  *            (char *) portNo: port number
@@ -92,7 +94,7 @@ int setUpUDP(char * portNo, char * ipAddress)
     int rc = SUCCESS,        // Return code
         i_rc;                // Temp RC
  
-    // Create a socket
+    // Create a UDP socket
     udp = socket(AF_INET, SOCK_DGRAM, 0);
     if ( ERROR == udp )
     {
@@ -100,11 +102,12 @@ int setUpUDP(char * portNo, char * ipAddress)
         printf("\nError number: %d\n", errno);
         printf("\nExiting.... ... .. . . .\n");
         perror("socket");
-        printToLog(logF, ipAddress, "socket() failure");
+        printToLog(logF, ipAddress, "UDP socket() failure");
         rc = ERROR;
+        goto rtn;
     }
   
-    printToLog(logF, ipAddress, "socket() successful");
+    printToLog(logF, ipAddress, "UDP socket() successful");
 
     memset(&hostAddress, 0, sizeof(struct sockaddr_in));
     hostAddress.sin_family = AF_INET;
@@ -116,15 +119,34 @@ int setUpUDP(char * portNo, char * ipAddress)
     i_rc = bind(udp, (struct sockaddr *) &hostAddress, sizeof(hostAddress));
     if ( ERROR == i_rc )
     {
-        printf("\nUnable to bind socket\n");
+        printf("\nUnable to bind UDP socket\n");
         printf("\nError number: %d\n", errno);
         printf("\nExiting.... ... .. . . .\n");
         perror("bind");
-        printToLog(logF, ipAddress, "bind() failure");
+        printToLog(logF, ipAddress, "UDP bind() failure");
         rc = ERROR;
-     }
+        goto rtn;
+    }
 
-     printToLog(logF, ipAddress, "bind() successful");
+    printToLog(logF, ipAddress, "UDP bind() successful");
+
+    // Create a TCP socket 
+    tcp = socket(AF_INET, SOCK_STREAM, 0);
+    if ( ERROR == tcp )
+    {
+        printf("\nUnable to open socket\n");
+        printf("\nError number: %d\n", errno);
+        printf("\nExiting.... ... .. . . .\n");
+        perror("socket");
+        printToLog(logF, ipAddres, "TCP socket() failure");
+        rc = ERROR;
+    }
+
+    printToLog(logF, ipAddress, "TCP socket() successful");
+
+    memset 
+   
+    
 
   rtn:
     funcExit(logF, ipAddress, "setUpUDP", rc);

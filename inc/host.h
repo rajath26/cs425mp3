@@ -41,7 +41,7 @@
  */
 #define SUCCESS            0
 #define ERROR              -1
-#define NUM_OF_CL_ARGS     5 
+#define NUM_OF_CL_ARGS     6 
 #define LEADER             7
 #define MEMBER             8
 #define NUM_OF_THREADS     3 
@@ -61,6 +61,7 @@
  */
 //FILE *logF;                            // File pointer to log
 int udp;                               // UDP socket descriptor
+int tcp;                               // TCP socket descriptor 
 struct sockaddr_in hostAddress;        // Host address
 char ipAddress[SMALL_BUF_SZ],          // IP of current host
      portNo[SMALL_BUF_SZ],             // Port no of current host
@@ -75,7 +76,7 @@ int CLA_checker(
                 int argc,        // Number of CLA
                 char *argv[]     // CLAs
                 );
-int setUpUDP();
+int setUpPorts();
 int requestMembershipToLeader(
                               int leaderPort,     // Leader port
                               char *leaderIp      // Leader IP 
