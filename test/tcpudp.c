@@ -138,11 +138,11 @@ int main(int argc, char *argv[])
    serverAddress.sin_addr.s_addr = inet_addr("192.168.139.134");
    memset(&(serverAddress.sin_zero), '\0', 8);
 
-   memset(&serverAddress1, 0, sizeof(struct sockaddr_in));
+   /*memset(&serverAddress1, 0, sizeof(struct sockaddr_in));
    serverAddress1.sin_family = AF_INET;
    serverAddress1.sin_port = htons(3491);
    serverAddress1.sin_addr.s_addr = inet_addr("192.168.139.134");
-   memset(&(serverAddress1.sin_zero), '\0', 8);
+   memset(&(serverAddress1.sin_zero), '\0', 8);*/
 
    // Bind 
    i_rc = bind(udp, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 
    printf("\n UDP bind success");
 
-   i_rc = bind(tcp, (struct sockaddr *) &serverAddress1, sizeof(serverAddress1));
+   i_rc = bind(tcp, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
    if ( -1 == i_rc ) 
    {
        printf("\nUnable to bind TCP\n"); 

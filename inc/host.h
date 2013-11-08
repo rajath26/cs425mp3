@@ -41,7 +41,7 @@
  */
 #define SUCCESS            0
 #define ERROR              -1
-#define NUM_OF_CL_ARGS     6 
+#define NUM_OF_CL_ARGS     5 
 #define LEADER             7
 #define MEMBER             8
 #define NUM_OF_THREADS     3 
