@@ -46,13 +46,32 @@ int update_host_list()
 //still work to do
 int choose_host_hash_value(int key)
 {
+    int i;
     char buffer[20];
     sprintf(buffer,"%d",key);
-    int hash_value = g_str_hash(buffer);
-    
+    int hash_value = g_str_hash(buffer) % 360;
+    int *ptr= (int *)member_list;
+    // impossible case, expect atleast one element to be present
+    if(ptr[0]==0){
+           return -1;
+    }
+    // if only one member is present
+    if(ptr[1]==0){
+           return ptr[0];
+    }
+    // if hash_value is less than first element in the sorted list
+    if(hash_value < ptr[0]){
+           return ptr[0];
+    }
+    // if hash_value is greater than the last element return the first value
+    if(hash_value > ptr[MAX_HOSTS-1]){
+           return ptr[0];
+    }
+    // if hash_value is in between the element list 
+
     for(i=0;i<MAX_HOSTS-1;i++){
-            if(hash_value > member_list[i] && hash_value < member_list[i+1]){
-                       return member_list[i+1];
+            if(hash_value > ptr[i] && hash_value < ptr[i+1]){
+                       return ptr[i+1];
             }
     }	 
 
