@@ -257,22 +257,21 @@ void main(){
 */  
 //   struct op_code *temp;
   // extract_message examples
-/*  
+  
    printf("-----------------------\n");
    create_message_INSERT(100,value,&msg);
-   struct op_code* temp;
+   temp=0x0;
+ //  struct op_code* temp;
    extract_message_op(msg,&temp);
    printf("%s\n",msg);
-*/
-/*
    printf("key : %d\n",temp->key);
    printf("value : %s\n",temp->value);
    printf("opcode:%d\n",temp->opcode);
    free(msg);
    free(temp);
    printf("-------------------------\n");
-*/
-/*
+   msg=0x0;
+
    create_message_DELETE(1234,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -281,6 +280,7 @@ void main(){
    free(msg);
    free(temp);
    printf("-------------------------\n");
+   msg=0x0;
 
    create_message_UPDATE(1234,value,&msg);
    extract_message_op(msg,&temp);
@@ -289,7 +289,9 @@ void main(){
    printf("opcode:%d\n",temp->opcode);
    free(msg);
    free(temp);
+   msg=0x0;
    printf("--------------------------\n");
+
 
    create_message_LOOKUP(1234,&msg);
    extract_message_op(msg,&temp);
@@ -301,15 +303,32 @@ void main(){
    msg=0x0;
    printf("--------------------------\n");
 
-   create_message_LOOKUP(1234,&msg);
+   
+   create_message_LOOKUP_RESULT(1234,value,&msg);
    extract_message_op(msg,&temp);
+   printf("%s\n",msg);
    printf("key : %d\n",temp->key);
    printf("value : %s\n",temp->value);
    printf("opcode:%d\n",temp->opcode);
    free(msg);
    free(temp);
-   msg=0x0;
+   msg=0x0;  
+/*
+   temp=NULL;
+   char *msg1=NULL;
+   printf("------last lookup--------------\n");
+   create_message_LOOKUP(1234,&msg1);
+   extract_message_op(msg1,&temp);
+   printf("key : %d\n",temp->key);
+   printf("value : %s\n",temp->value);
+   printf("opcode:%d\n",temp->opcode);
+   free(msg1);
+   free(temp);
+   msg1=0x0;
+*/
 
+
+/*
    create_message_LOOKUP(1234,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -529,12 +548,12 @@ void main(){
 
    printf("===================================================\n");
    printf("====================hash table creation============\n");
-   
+   /*
    create_hash_table();
    insert_key_value_into_store(temp);
    char *value123 = lookup_store_for_key(1234);
    printf("%s",value123);
-
+   */
 
 
 }          	
