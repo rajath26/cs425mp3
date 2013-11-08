@@ -20,12 +20,48 @@
 char logMsg1[500];   // Global variable to send the log messages to the logger interface
 
 
+// this is required to keep the members in the sorted order
+GArray* member_list = 0x0;
+pthread_mutex_t members_mutex;
 
+// a mutex required ?
+
+int update_host_list()
+{
+   member_list = g_array_new(TRUE,TRUE,MAX_HOSTS);
+
+   pthread_mutex_lock(&members_mutex);
+   int j = 0;
+   int i = 0;
+   // copy the hash id and index
+   for(i=0;i<MAX_HOSTS;i++){
+            if(hb_table[i].valid && hb_table[i].status){
+                        int val = atoi(hb_table[i].host_id);
+                        member_list =  g_array_append_val(member_list, val);
+            }
+   }             
+   g_array_sort(member_list,&qsort);
+   pthread_mutex_unlock(&members_mutex);
+}
+//still work to do
+int choose_host_hash_value(int key)
+{
+    char buffer[20];
+    sprintf(buffer,"%d",key);
+    int hash_value = g_str_hash(buffer);
+    
+    for(i=0;i<MAX_HOSTS-1;i++){
+            if(hash_value > member_list[i] && hash_value < member_list[i+1]){
+                       return member_list[i+1];
+            }
+    }	 
+
+}
 /*
  *  This function is used for deleting an entry in the table
  *  input param : index of the table that needs to be deleted
  */
-
+    
 int delete_entry_table(int table_index)
 {
    funcEntry(logF,ip_Address,"delete_entry_table");
@@ -300,6 +336,7 @@ int update_table(struct hb_entry *msg_table)
   for(i=0;i<MAX_HOSTS;i++){
        if(msg_table[i].valid && msg_table[i].status){
               if(msg_table[i].hb_count > hb_table[i].hb_count){
+		       update_host_list();  	
                        if(!hb_table[i].valid){
                                  hb_table[i].valid=1;
                                  strcpy(hb_table[i].host_id,msg_table[i].host_id);
