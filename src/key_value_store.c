@@ -146,7 +146,7 @@ int extract_message_op(char *message, struct op_code** instance){
 
 		   *instance = (struct op_code *)malloc(sizeof(struct op_code));  // up-to the caller to free this
 
-		   char *delim=":";	
+		   char delim[5]=":";	
 		   char *token=strtok(original,delim); 	
                     
 		   if (strcmp(token,"INSERT")==0){   //INSERT:KEY:VALUE;
@@ -216,18 +216,23 @@ void main(){
 
 
   // create_message_XXXX examples
-
+   struct op_code *temp=0x0;
    char *msg=0x0;
-   char *value = "192.145.1.1#4002";
+   char value[100] = "192.145.1.uselessfellowbloodyfellownonsense";
    int key = 100;
    int key1 = g_str_hash(value);
    printf("hash value for hello world is %d\n",key1%360);
 
-/*
+
    create_message_INSERT(100,value,&msg);
    printf("%s\n",msg);
-   free(msg);
-   msg=0x0; 
+   
+
+   extract_message_op(msg,&temp);
+   printf("%s\n",msg);
+   printf("key : %d\n",temp->key);
+   printf("value : %s\n",temp->value);
+   printf("opcode:%d\n",temp->opcode);
    
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
@@ -244,23 +249,30 @@ void main(){
    free(msg);
    msg=0x0;
 
-
+/*
    create_message_LOOKUP_RESULT(1234,value,&msg);
    printf("%s\n",msg);
    free(msg);
    msg=0x0; 
+*/  
+//   struct op_code *temp;
   // extract_message examples
-   
+/*  
    printf("-----------------------\n");
    create_message_INSERT(100,value,&msg);
    struct op_code* temp;
    extract_message_op(msg,&temp);
+   printf("%s\n",msg);
+*/
+/*
    printf("key : %d\n",temp->key);
    printf("value : %s\n",temp->value);
    printf("opcode:%d\n",temp->opcode);
    free(msg);
    free(temp);
    printf("-------------------------\n");
+*/
+/*
    create_message_DELETE(1234,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -269,6 +281,7 @@ void main(){
    free(msg);
    free(temp);
    printf("-------------------------\n");
+
    create_message_UPDATE(1234,value,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -277,6 +290,7 @@ void main(){
    free(msg);
    free(temp);
    printf("--------------------------\n");
+
    create_message_LOOKUP(1234,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -359,8 +373,8 @@ void main(){
    free(msg);
    free(temp);
    msg=0x0;
-
-   
+*/
+/*  
    create_message_LOOKUP_RESULT(1234,value,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -369,6 +383,7 @@ void main(){
  //  free(msg);
    free(temp);
    printf("\n---------------------------\n");
+   msg=0x0;
 
    create_message_LOOKUP_RESULT(1234,value,&msg);
    extract_message_op(msg,&temp);
@@ -378,7 +393,7 @@ void main(){
    printf("opcode:%d\n",temp->opcode);
  //  free(msg);
    free(temp);
-  
+   msg=0x0;  
    
    char *msg1;
    create_message_LOOKUP_RESULT(1234,value,&msg1);
@@ -389,7 +404,7 @@ void main(){
    printf("opcode:%d\n",temp->opcode);
 //   free(msg1);
    free(temp);
- 
+    
    char *msg2;
    create_message_LOOKUP_RESULT(1234,value,&msg2);
    extract_message_op(msg2,&temp);
@@ -400,7 +415,9 @@ void main(){
  //  free(msg2);
 
    free(temp);
-   
+*/
+/*
+   msg=0x0;
    
    char *msg3;
    create_message_DELETE(1234,&msg3);
@@ -409,9 +426,10 @@ void main(){
    printf("key : %d\n",temp->key);
    printf("value : %s\n",temp->value);
    printf("opcode:%d\n",temp->opcode);
- //  free(msg3);
+   free(msg3);
    free(temp);
-   
+
+   msg=0x0;
    create_message_INSERT(100,value,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -493,7 +511,8 @@ void main(){
    free(msg);
    free(temp);
    msg=0x0;
-
+*/
+/*
    create_message_LOOKUP_RESULT(1234,value,&msg2);
    char *buffer=(char *)malloc(100);
    strcpy(buffer,msg2);
@@ -505,7 +524,7 @@ void main(){
    printf("value : %s\n",temp->value);
    printf("opcode:%d\n",temp->opcode);
  //  free(msg2);
-
+*/
    
 
    printf("===================================================\n");
@@ -515,7 +534,7 @@ void main(){
    insert_key_value_into_store(temp);
    char *value123 = lookup_store_for_key(1234);
    printf("%s",value123);
-*/
+
 
 
 }          	
