@@ -161,7 +161,7 @@ int setUpPorts(char * portNo, char * ipAddress)
     funcExit(logF, ipAddress, "setUpPorts", rc);
     return rc;
 
-} // End of setUpUDP()
+} // End of setUpPorts()
 
 /*****************************************************************
  * NAME: requestMembershipToLeader 
@@ -445,6 +445,32 @@ void * startKelsa(void *threadNum)
         printToLog(logF, ipAddress, logMsg);
         i_rc = heartBeatCheckerFunc();
         break;
+
+	case 3: 
+	// Fourth thread calls the send key value function that 
+	// i) Receives the instruction from the user 
+	// ii) Routes the request to the right node
+        strcat(logMsg, "\texecuting sendKVFunc");
+	i_rc = sendKVFunc();
+	break;
+
+	case 4:
+	// Fifth thread calls receive key value function that 
+	// i) Receives operation instructions from send KV thread
+	// ii) Calls respective APIs to perform them on local kV store
+	strcat(logMsg, "\texecuting receiveKVFunc");
+	i_rc = receiveKVFunc();
+	break;
+
+	case 5: 
+	// Sixth threads calls key value store reorder function that
+	// i) Reorders local key value store whenever a node joins 
+	//    the distributed system
+	// ii) Reorders local key value store wheneve a node leaves 
+	//     the distributed system 
+	strcat(logMsg, "\texecuting localKVReorderFunc");
+	i_rc = localKVReorderFunc();
+	break;
 
         default:
         // Can't get here if we do then exit
@@ -817,8 +843,20 @@ void leaveSystem(int signNum)
 {
 
     funcEntry(logF, "Leaving Daisy Distributed System", "leaveSystem");
+
+    printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
+
+    i_rc = preNodeForSystemLeave()
+    if ( ERROR == i_rc )
+    {
+         sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
+         printToLog(logF, ipAddress, logMsg);
+         printf("\n%s\n", logMsg);
+         printToLog(logF, ipAddress, "Proceeding to close to the UDP and TCP ports after receiving an error");
+    }  
     
     close(udp);
+    close(tcp);
 
     funcExit(logF, "Leaving Daisy Distributed System", "leaveSystem", 0);
 
@@ -899,9 +937,23 @@ int main(int argc, char *argv[])
      * Init local host heart beat table
      */
     
-    initialize_table(portNo, ipAddress, host_no,"1234");
+    initialize_table(portNo, ipAddress, host_no);
     printToLog(logF, ipAddress, "Initialized my table");
 
+    /*
+     * Init the local Key Value store i.e. 
+     * the hash table 
+     */
+    i_rc = intialize_local_key_value_store();
+    if ( i_rc != IERR_OK )
+    {
+         sprintf(logMsg, "Unable to initialize local key value store at IP Address %s and host no %d", ipAddress, host_no);
+         printf("\n%s\n", logMsg);
+         printToLog(logF, ipAddress, logMsg);
+         rc = ERROR;
+         goto rtn;
+    }
+         
     /* 
      * Get the node type based on third argument. By default it
      * is always member node.
@@ -917,18 +969,18 @@ int main(int argc, char *argv[])
     }
 
     /* 
-     * Set up UDP 
+     * Set up UDP & TCP
      */
-    i_rc = setUpUDP(portNo, ipAddress); 
+    i_rc = setUpPorts(portNo, ipAddress); 
     if ( i_rc != SUCCESS )
     {
         rc = ERROR;
-        printToLog(logF, ipAddress, "UDP setup failure");
+        printToLog(logF, ipAddress, "UDP and TCP setup failure");
         goto rtn;
     }
 
     // Log current status 
-    printToLog(logF, ipAddress, "UDP setup successfully");
+    printToLog(logF, ipAddress, "UDP and TCP setup successfully");
 
     /*
      * If current host is a LEADER then log that this host has

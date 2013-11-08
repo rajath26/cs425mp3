@@ -44,7 +44,7 @@
 #define NUM_OF_CL_ARGS     5 
 #define LEADER             7
 #define MEMBER             8
-#define NUM_OF_THREADS     3 
+#define NUM_OF_THREADS     6 
 #define JOIN_OP_CODE       9
 #define RECEIVE_HB_OP_CODE 8
 #define GOSSIP_HOSTS       2
@@ -96,6 +96,11 @@ int checkOperationCode(
 void leaveSystem(
                  int signum            // Signal
                 );
+int intialize_local_key_value_store();
+int prepareNodeForSystemLeave();
+int sendKVFunc();
+int receiveKVFunc();
+int localKVReorderFunc();
 
 /*
  * End 
