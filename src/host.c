@@ -1011,7 +1011,8 @@ int displayKVFunctionalities()
  * DESCRIPTION: This is the function that is responsible for 
  *              i) Receiving request from either the local client
  *                 or a peer server
- *              ii) Extract received IP and port and save it
+ *              ii) Extract received and original requestor IP and 
+ *                  port and save it
  *              iii) Extract received message 
  *              iv) Determine where to route the request
  *              v) if routing returns local
@@ -1036,13 +1037,18 @@ int receiveKVFunc()
     funcEntry(logF, ipAddress, "receiveKVFunc");
 
     int rc = SUCCESS,                     // Return code
-        numOfBytesRec,                    // Number of bytes receivedAA
+        numOfBytesRec,                    // Number of bytes received
+	numOfBytesSent,                   // Number of bytes sent
 	i_rc,                             // Temp RC
-        hash_index;                       // Hash index to host
+        hash_index,                       // Hash index to host
+        portPN;                           // Hashed peer node port
 
-    char recMsg[LONG_BUF_SZ];             // Received message 
+    char recMsg[LONG_BUF_SZ],             // Received message 
+         lookupValue[LONG_BUF_SZ],        // Lookup value buffer
+	 retMsg[LONG_BUF_SZ],             // Message to be returned to original requestor
+         ipAddrPN[SMALL_BUF_SZ];          // IP Address of hashed peer node
 
-    struct sockaddr_in requestorAddress;  // Requestor address
+    struct sockaddr_in receivedFromAddr;  // Predecessor address  
 
     struct op_code *temp = NULL;          // KV OPCODE
 
@@ -1050,9 +1056,13 @@ int receiveKVFunc()
     {
          // Set all to NULL
 	 memset(recMsg, '\0', LONG_BUF_SZ);
+	 memset(lookupValue, '\0', LONG_BUF_SZ);
+	 memset(retMsg, '\0', LONG_BUF_SZ);
+         memset(ipAddrPN, '\0', SMALL_BUF_SZ);
 	 temp = NULL;
-         memset(&requestorAddress, 0, sizeof(struct sockadddr_in));
+         memset(&receivedFromAddr, 0, sizeof(struct sockadddr_in));
 	 numOfBytesRec = 0;
+         numOfBytesSent = 0;
 
 	 // Debug
 	 printToLog(logF, "recMsg before recvUDP", recMsg);
@@ -1061,7 +1071,7 @@ int receiveKVFunc()
 	 // Step i
 	 /////////
 	 // Receive TCP message 
-	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &requestorAddress);
+	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &receivedFromAddr);
 	 // Check if 0 bytes is received 
 	 if ( SUCCESS == numOfBytesRec )
 	 {
@@ -1073,12 +1083,19 @@ int receiveKVFunc()
 
 	 // Debug
 	 printToLog(logF, "recMsg after recvTCP", recMsg);
+         sprintf(logMsg, "number of bytes received %d", numOfBytesRec);
+         printToLog(logF, ipAddress, logMsg); 
 
 	 //////////
 	 // Step ii
 	 //////////
-         // Extract and store requestor information
-         // Requestor information will be stored in requestorAddress
+         // Extract and store predecessor and original requestor 
+	 // information
+         // Original requestor information will be stored in 
+	 // temp op_code members port and ipAddr 
+	 // predecessor address will be in receivedFromAddr
+         sprintf(logMsg, "Original Requestor Port No: %d, IP Address: %s", temp->port, temp->ipAddr);
+         printToLog(logF, ipAddress, logMsg);
 
 	 ///////////
 	 // Step iii
@@ -1091,6 +1108,10 @@ int receiveKVFunc()
 	     printToLog(logF, ipAddress, logMsg);
 	     continue;
 	 }
+
+         printToLog(logF, "successfully extracted message", recMsg);
+         sprintf(logMsg, "opcode: %d, key: %d, value: %s", temp->opcode, temp->key, *(temp->value));
+         printToLog(logF, ipAddress, logMsg);
 
 	 //////////
 	 // Step iv
@@ -1105,6 +1126,9 @@ int receiveKVFunc()
 	      continue;
 	 }
 
+         sprintf(logMsg, "Hash index : %d", hash_index); 
+         printToLog(logF, ipAddress, logMsg);
+
 	 /////////
 	 // Step v
 	 /////////
@@ -1112,31 +1136,297 @@ int receiveKVFunc()
 	 // the requested operation on our local key value store 
 	 // else just send the original message to the host returned 
 	 // by choose_host_hb_index
+
+         ///////////
+         // If LOCAL 
+         ///////////
 	 if ( hash_index == my_hash_index )
 	 {
 
-             
+             printToLog(logF, ipAddress, "Local route");
+
+             // Do the operation on the local key value store 
+	     // based on the KV opcode
+	     switch( temp->opcode )
+	     {
+
+	         case INSERT_KV:
+		     // Insert the KV pair in to the KV store
+                     i_rc = insert_key_value_into_store(temp);
+		     // If error send an error message to the original
+		     // requestor
+		     if ( ERROR == i_rc )
+		     {
+                          sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+			  printToLog(logF, ipAddress, logMsg);
+			  i_rc = create_message_ERROR(temp, retMsg);
+			  if ( ERROR == i_rc )
+			  {
+			      printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+			      continue;
+			  }
+			  numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+			  if ( SUCCESS == numOfBytesSent )
+			  {
+                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
+			      continue;
+			  }
+		     }
+                     // If successful send a success message to the original 
+                     // requestor
+		     else 
+		     {
+                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+			 i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, retMsg);
+			 if ( ERROR == i_rc )
+			 {
+			     printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
+			     continue;
+			 }
+			 numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+	                 if ( SUCCESS == numOfBytesSent )
+		         {
+			     printToLog(logF, ipAddress, "ZERO BYTES SENT");
+			     continue;
+			 }
+		     }
+                 break;
+
+		 case DELETE_KV:
+                     // Delete the KV pair in to the KV store
+                     i_rc = delete_key_value_store_from_store(temp->key);
+                     // If error send an error message to the original 
+                     // requestor
+		     if ( ERROR == i_rc )
+		     {
+		         sprintf(logMsg, "There was an ERROR while DELETING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_ERROR(temp, retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+                     // If successful send a success message to the original 
+                     // requestor
+		     else
+		     {
+		         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY DELETED", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_DELETE_RESULT_SUCCESS(temp->key, retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating DELETE_RESULT_SUCCESS_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+		 break;
+
+		 case UPDATE_KV:
+                     // Update KV in to the KV store
+		     i_rc = update_key_value_in_store(temp);
+                     // if error send an error message to the original
+                     // requestor
+		     if ( ERROR == i_rc )
+		     {
+                         sprintf(logMsg, "There was an ERROR while UPDATING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_ERROR(temp, retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+		     else 
+		     {
+                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY UPDATED", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_UPDATE_RESULT_SUCCESS(temp->key, retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+		 break;
+
+		 case LOOKUP_KV:
+                     // Lookup on the local key value store
+	             lookupValue = lookup_store_for_key(temp->key);
+                     // If an error send an error message to the original
+                     // requestor
+                     if ( ERROR == i_rc )
+		     {
+		         sprintf(logMsg, "There was an ERROR during LOOKUP of %d = %s KV pair in the local KV store", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_ERROR(temp, retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+                     // If successful send a success message to the orig
+                     // requestor
+		     else
+		     {
+		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, *(temp->value));
+			 printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_LOOKUP_RESULT(temp->key, *(temp->value), retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
+                             continue;
+                         }
+                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+		     }
+		 break;
+
+		 case LOOKUP_RESULT:
+                     // Nothing here as of now 
+		 break;
+
+		 case INSERT_RESULT:
+                     // Nothing here as of now 
+		 break;
+
+		 case DELETE_RESULT:
+                     // Nothing here as of now 
+		 break;
+
+		 case UPDATE_RESULT:
+                     // Nothing here as of now 
+		 break;
+
+                 default:
+		     // We should never ever be here 
+		     sprintf(logMsg, "Invalid KV OP code received so just continue along");
+		     printToLog(logF, ipAddress, logMsg);
+		     continue;
+		 break;
+
+	     } // End of switch( temp->opcode )
 
 	 } // End of if ( hash_index == my_hash_index )
+
+         //////////////////
+         // IF PEER ROUTING
+         //////////////////
 	 else 
 	 {
+         
+             printToLog(logF, ipAddress, "Peer Node routing");
 
+             // Send the received message to the hashed peer node
+             numOfBytesSent = sendTCP(portPN, ipAddrPN, recMsg);
+             if ( SUCCESS == numOfBytesSent )
+             {
+                 printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                 continue;
+             }
 
 	 } // End of else of if ( hash_index == my_hash_index )
-         
 
-
-
-
-
-	 }
-    }
+    } // End of for(;;)
 
   rtn:
     funcExit(logF, ipAddress, "receiveKCFunc", rc);
     return rc;
 
 } // End of receiveKVFunc()
+
+/****************************************************************
+ * NAME: localKVReoderFunc 
+ *
+ * DESCRIPTION: This is the function that is responsible for 
+ *              i) Reordering the local KV store whenever the
+ *                 trigger for reoder is set
+ *              ii) The trigger for reorder is set when a node 
+ *                  joins or leaves the Daisy Distributed 
+ *                  system
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int localKVReorderFunc()
+{
+
+    funcEntry(logF, ipAddress, "localKVReorderFunc");
+
+    int rc = SUCCESS;
+
+    while(1)
+    {
+
+        sleep(REORDER_CHECK_TIME_PERIOD);
+
+        printToLog(logF, ipAddress, "I am in localKVReorderFunc");
+        sprintf(logMsg, "Reorder trigger value: %d", reOrderTrigger);
+        printToLog(logF, ipAddress, logMsg);
+
+        if (reOrderTrigger) 
+        {
+            i_rc = reorderKVStore();
+            if ( ERROR == localKVStoreReorder )
+            {
+                printToLog(logF, ipAddress, "error while reordering local KV store");
+            }
+            else 
+            {
+                printToLog(logF, ipAddress, "SUCCESSFULLY REORDERED LOCAL KV STORE");
+            }
+        }
+
+    } // End of while(1)
+
+  rtn:
+    funcExit(logF, ipAddress, "localKVReorderFunc", rc);
+    return rc;
+
+} // End of localKVReorderFunc
+
 
 /*
  * Main function
