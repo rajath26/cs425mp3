@@ -388,6 +388,7 @@ int spawnHelperThreads()
   rtn:
     funcExit(logF, ipAddress, "spawnHelperThreads", rc);
     return rc;
+
 } // End of spawnHelperThreads();
 
 /****************************************************************
@@ -488,7 +489,8 @@ void * startKelsa(void *threadNum)
 
   rtn:
     funcExit(logF, ipAddress, "startKelsa", rc);
-}
+    return rc;
+} // End of startKelsa()
 
 /****************************************************************
  * NAME: receiverFunc 
@@ -1520,7 +1522,7 @@ int main(int argc, char *argv[])
     /*
      * Init log file 
      */
-    i_rc = logFileCreate();
+    i_rc = logFileCreate(LOG_FILE_LOCATION);
     if ( i_rc != SUCCESS )
     {
         printf("\nLog file won't be created. There was an error\n");
@@ -1552,7 +1554,6 @@ int main(int argc, char *argv[])
     /*
      * Init local host heart beat table
      */
-    
     initialize_table(portNo, ipAddress, host_no);
     printToLog(logF, ipAddress, "Initialized my table");
 

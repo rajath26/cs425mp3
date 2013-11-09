@@ -44,7 +44,7 @@ int logFileCreate(char * logFileLocation)
 
     int rc = SUCCESS;        // Return code 
        
-    logF = fopen(LOG_FILE_LOCATION, "a+");
+    logF = fopen(logFileLocation, "a+");
     if ( NULL == logF ) 
     {
         printf("\nUnable to open log file in write mode\n");
