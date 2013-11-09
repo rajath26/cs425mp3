@@ -455,7 +455,7 @@ void * startKelsa(void *threadNum)
 	break;*/
 
 	case 3:
-	// Fifth thread calls receive key value function that 
+	// Fourth thread calls receive key value function that 
 	// i) Receives operation instructions from send KV thread
 	// ii) Calls respective APIs to perform them on local kV store
 	strcat(logMsg, "\texecuting receiveKVFunc");
@@ -463,7 +463,7 @@ void * startKelsa(void *threadNum)
 	break;
 
 	case 4: 
-	// Sixth threads calls key value store reorder function that
+	// Fifth thread calls key value store reorder function that
 	// i) Reorders local key value store whenever a node joins 
 	//    the distributed system
 	// ii) Reorders local key value store wheneve a node leaves 
@@ -471,6 +471,11 @@ void * startKelsa(void *threadNum)
 	strcat(logMsg, "\texecuting localKVReorderFunc");
 	i_rc = localKVReorderFunc();
 	break;
+
+        case 5: 
+        // Sixth thread calls functtion to print local key value store
+        i_rc = printKVStore();
+        break;
 
         default:
         // Can't get here if we do then exit
@@ -819,7 +824,7 @@ int heartBeatCheckerFunc()
         sleep(HEART_BEAT_UPDATE_SEC);
         update_my_heartbeat();
         check_table_for_failed_hosts();
-        print_table(hb_table);
+        //print_table(hb_table);
     }
 
   rtn:
@@ -1409,7 +1414,7 @@ int localKVReorderFunc()
         if (reOrderTrigger) 
         {
             i_rc = reorderKVStore();
-            if ( ERROR == localKVStoreReorder )
+            if ( ERROR == i_rc )
             {
                 printToLog(logF, ipAddress, "error while reordering local KV store");
             }
@@ -1427,6 +1432,51 @@ int localKVReorderFunc()
 
 } // End of localKVReorderFunc
 
+/****************************************************************
+ * NAME: printKVStore 
+ *
+ * DESCRIPTION: This is the function that is responsible for 
+ *              printing local KV store
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int printKVStore()
+{
+
+    funcEntry(logF, ipAddress, "printKVStore");
+
+    int rc = SUCCESS,         // Return code
+        i_rc;                 // Temp RC
+
+    char input[SMALL_BUF_SZ]; // Input
+
+    printf("\n");
+    printf("\t\t***************************************\n");
+    printf("\t\t***************************************\n");
+    printf("\t\tWelcome to the Embedded Daisy KV store \n");
+    printf("\t\t***************************************\n");
+    printf("\t\t***************************************\n");
+    for (;;)
+    {
+        printf("\t\tI am the bot to let you print the local KV store\n");
+        printf("\t\tHit \"PRINT\" when you want to print the local key value store\n");
+        scanf("%s", input);
+        if ( SUCCESS == strcmp(input, "PRINT");
+           printLocalKVStore();
+        else 
+           continue;
+    }
+
+  rtn:
+    funcExit(logF, ipAddress, "printKVStore");
+    return rc;
+
+} // End of printKVStore()
 
 /*
  * Main function

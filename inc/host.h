@@ -44,7 +44,7 @@
 #define NUM_OF_CL_ARGS            5 
 #define LEADER                    7
 #define MEMBER                    8
-#define NUM_OF_THREADS            5   
+#define NUM_OF_THREADS            6   
 #define JOIN_OP_CODE              9
 #define RECEIVE_HB_OP_CODE        8
 #define GOSSIP_HOSTS              2
