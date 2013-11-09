@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<glib.h>
+#include"message_table.c"
 
 
 struct op_code{
@@ -16,33 +17,49 @@ struct op_code{
 GQueue* temp_list=0x0;
 GHashTable* key_value_store;
 
+pthread_mutex_t key_value_mutex;
+
 int create_temp_list()
 {
+   funcEntry(logF,NULL,"create_temp_list");
    temp_list =  g_queue_new();
+   funcExit(logF,NULL,"choose_temp_list",0);
 }
 
 
 int insert_into_temp_list(int key, char *value)
 {
+   funcEntry(logF,NULL,"insert_into_temp_list");
    struct op_code* temp = (struct op_code *)malloc(sizeof(struct op_code));  
    temp->key = key;
    temp->value = value;
-   g_queue_push_tail(temp_list,(gpointer)temp);     
+   g_queue_push_tail(temp_list,(gpointer)temp);
+   funcExit(logF,NULL,"insert_into_temp_list",0);     
 }
 
 struct op_code* retrieve_from_temp_list()
 {
+   funcEntry(logF,NULL,"retrieve_from_temp_list");
    struct op_code* temp = g_queue_pop_head(temp_list);
+   funcExit(logF,NULL,"retrieve_from_temp_list",0);
    return temp;
 }
 
 void print_key_value(gpointer key,gpointer value, gpointer dummy){
+         funcEntry(logF,NULL,"print_key_value");
+         pthread_mutex_lock(&key_value_mutex);
          printf("key :%s, value : %s\n",(char *)key,(char *)value);
+         pthread_mutex_unlock(&key_value_mutex);
+         funcExit(logF,NULL,"print_key_value",0);
 }
 
 
 void iterate_hash_table(){
+         funcEntry(logF,NULL,"iterate_hash_table");
+//         pthread_mutex_lock(&key_value_mutex);
          g_hash_table_foreach(key_value_store,print_key_value,NULL);
+//         pthread_mutex_unlock(&key_value_mutex);
+         funcExit(logF,NULL,"iterate_hash_table",0);
 }
 /*
 void print_key_value(char *key,char *value){
@@ -50,14 +67,27 @@ void print_key_value(char *key,char *value){
 }*/
 
 int create_hash_table(){
+   funcEntry(logF,NULL,"create_hash_table");
+   pthread_mutex_lock(&key_value_mutex);
    key_value_store =  g_hash_table_new(g_str_hash,g_str_equal);
-   if(key_value_store == NULL) return -1;
-   else return 0;
+   if(key_value_store == NULL){
+             pthread_mutex_unlock(&key_value_mutex); 
+             funcExit(logF,NULL,"create_hash_table",0);
+             return -1;
+   }
+   else{
+             pthread_mutex_unlock(&key_value_mutex); 
+             funcExit(logF,NULL,"create_hash_table",0);
+             return 0;
+   }
 }
 
 // send an opcode instance which is dynamically allocated
 //
 int insert_key_value_into_store(struct op_code* op_instance){
+   
+     funcEntry(logF,NULL,"insert_key_value_into_store");  
+     pthread_mutex_lock(&key_value_mutex);
      char *buffer;
      buffer = (char*)malloc(200);
      sprintf(buffer,"%d",op_instance->key);
@@ -66,94 +96,129 @@ int insert_key_value_into_store(struct op_code* op_instance){
      gpointer value = (gpointer)op_instance->value;
 
      g_hash_table_insert(key_value_store,key,value);
+     pthread_mutex_unlock(&key_value_mutex);
+     funcExit(logF,NULL,"insert_key_value_into_store",0);
 }
 
 char* lookup_store_for_key(int key){
     
+     funcEntry(logF,NULL,"lookup_store_for_key");
+     pthread_mutex_lock(&key_value_mutex);
      gpointer value;
      char *buffer = (char *)malloc(200);
      sprintf(buffer,"%d",key);
      gpointer key_temp = (gpointer)buffer;
      value = g_hash_table_lookup(key_value_store,key_temp);
      free(buffer);
+     pthread_mutex_unlock(&key_value_mutex);
+     funcExit(logF,NULL,"lookup_store_for_key",0);
      return (char *)value;
 }
 
 int delete_key_value_from_store(int key){
+     funcEntry(logF,NULL,"delete_key_value_from_store");
+     pthread_mutex_lock(&key_value_mutex);
      int status;
      char *buffer = (char *)malloc(200);
      sprintf(buffer,"%d",key);
      status = g_hash_table_remove(key_value_store,buffer);
-     if(status) 
+     if(status){
+          funcExit(logF,NULL,"delete_key_value_from_store",0);
+          pthread_mutex_unlock(&key_value_mutex); 
           return 0; //success
-     else
+     }
+     else{
+          funcExit(logF,NULL,"delete_key_value_from_store",0);
+          pthread_mutex_unlock(&key_value_mutex);
           return -1; //failure
+    }
 }
 
 int append_port_ip_to_message(char *port,char *ip,char *message){
+                   funcEntry(logF,NULL,"append_port_ip_to_message");
                    strcat(message,port);
                    strcat(message,":");
                    strcat(message,ip);
                    strcat(message,";");
+                   funcExit(logF,NULL,"append_port_ip_to_message",0);
                    return 0;
 }
 
 //upto the caller to free the buffers in create_message_X cases
 int create_message_INSERT(int key, char *value, char **message){
+                   funcEntry(logF,NULL,"create_message_INSERT");
 	           int len = strlen(value);
 	           char *buffer = (char *)malloc(300);
 		   sprintf(buffer,"INSERT:%d:%s;",key,value);
 		   *message = buffer;
+                   funcExit(logF,NULL,"create_message_INSERT",0);
 		   return 0;
 }
 int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
+                   
+                   funcEntry(logF,NULL,"create_message_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
+                   funcExit(logF,NULL,"create_message_RESULT_SUCCESS",0);
                    return 0;
 }
 int create_message_DELETE(int key, char **message){
+                   funcEntry(logF,NULL,"create_message_DELETE");
 	           char *buffer = (char *)malloc(300);
 	           sprintf(buffer,"DELETE:%d;",key);
 		   *message = buffer;
+                   funcExit(logF,NULL,"create_message_DELETE",0);
 		   return 0;
 }
 int create_message_DELETE_RESULT_SUCCESS(int key, char **message){
+                   funcEntry(logF,NULL,"create_message_DELETE_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"DELETE_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
+                   funcExit(logF,NULL,"create_message_DELETE_RESULT_SUCCESS",0);
                    return 0;
 }
 int create_message_UPDATE(int key, char *value, char **message){
+                   funcEntry(logF,NULL,"create_message_UPDATE");
 	           int len = strlen(value);
 	           char *buffer = (char *)malloc(len+20+100);
 		   sprintf(buffer,"UPDATE:%d:%s;",key,value);
 		   *message = buffer;
+                   funcExit(logF,NULL,"create_message_UPDATE",0);
 		   return 0;
 }
 int create_message_UPDATE_RESULT_SUCCESS(int key, char **message){
+                   funcEntry(logF,NULL,"create_message_UPDATE_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"UPDATE_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
+                   funcExit(logF,NULL,"create_message_UPDATE_RESULT_SUCCESS",0);
                    return 0;
 }
 int create_message_LOOKUP(int key, char **message){
+                   funcEntry(logF,NULL,"create_message_LOOKUP");
 	           char *buffer = (char *)malloc(300);
 		   sprintf(buffer,"LOOKUP:%d;",key);
 		   *message = buffer;
+                   funcExit(logF,NULL,"create_message_LOOKUP",0);
 		   return 0;
 }
 int create_message_LOOKUP_RESULT(int key, char *value, char **message){
+                   funcEntry(logF,NULL,"create_message_LOOKUP_RESULT");
 	           int len = strlen(value);
 		   char *buffer = (char *)malloc(len + 300);
 		   sprintf(buffer,"LOOKUP_RESULT:%d:%s;",key,value);
 		   *message = buffer;
+                   funcExit(logF,NULL,"create_message_LOOKUP_RESULT",0);
 		   return 0;
 }
 int create_message_ERROR(char **message){
+                   funcEntry(logF,NULL,"create_message_ERROR");
                    char *buf = (char *)malloc(300);
                    strcpy(buf,"ERROR:UNABLE TO COMPLETE THE REQUIRED OPERATION;");
                    *message = buf;
+                   funcExit(logF, NULL,"create_message_ERROR",0);
                    return 0;
 }
 /*
@@ -165,6 +230,8 @@ struct op_code{
 */
 // INSERT, DELETE, UPDATE, GET messages are possible
 int extract_message_op(char *message, struct op_code** instance){
+
+                   funcEntry(logF,NULL,"extract_message_op");
 	           char *original = (char *)malloc(strlen(message));
                    strcpy(original,message);
 
@@ -212,6 +279,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			    strcpy(value_instance,token);
                     	    (*instance)->value = value_instance;
                        
+                            funcExit(logF,NULL,"extract_message_op",0);
                     	    return 1;
                    }
              					
@@ -221,6 +289,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			    (*instance)->key = atoi(token);
 			    (*instance)->value = NULL;
                             
+                            funcExit(logF,NULL,"extract_message_op",0); 
 			    return 1;
 	           }
 		   if(strcmp(token,"UPDATE")==0){ //UPDATE:KEY:VALUE;
@@ -234,6 +303,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			    strcpy(value_instance, token);
 			    (*instance)->value = value_instance;
                             
+                            funcExit(logF,NULL,"extract_message_op",0);
 			    return 1;
 		   }
 		   if(strcmp(token,"LOOKUP")==0){  //LOOKUP:KEY;
@@ -242,6 +312,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			    (*instance)->key = atoi(token);
                             (*instance)->value = NULL;
                             
+		            funcExit(logF,NULL,"extract_message_op",0);		
 			    return 1;
 		   }
 		   if(strcmp(token,"LOOKUP_RESULT")==0){
@@ -255,6 +326,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			    strcpy(value_instance, token);
 			    (*instance)->value = value_instance;
                             
+ 			    funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
 		   }
                    if(strcmp(token,"ERROR")==0){
@@ -264,12 +336,13 @@ int extract_message_op(char *message, struct op_code** instance){
                             strcpy(value_instance,token);
                             (*instance)->value = value_instance;
                             
+			    funcExit(logF,NULL,"extract_message_op",0);	
                             return 1;
                    }
                              
-                   if(strcmp(token,"INSERT_RESULT_SUCCESS")==0) return 6;
-                   if(strcmp(token,"DELETE_RESULT_SUCCESS")==0) return 7;
-                   if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0) return 8;
+                   if(strcmp(token,"INSERT_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 6;}
+                   if(strcmp(token,"DELETE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 7;}
+                   if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 8;}
     
 }
 			
@@ -278,7 +351,13 @@ int extract_message_op(char *message, struct op_code** instance){
 
 void main(){
 
-
+   int   i_rc = logFileCreate(LOG_FILE_LOCATION);
+     if ( i_rc != SUCCESS )
+        {
+          printf("\nLog file won't be created. There was an error\n");
+          int rc = -1;
+         // goto rtn;
+         }
   // create_message_XXXX examples
    struct op_code *temp=0x0;
    char *msg=0x0;

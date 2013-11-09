@@ -40,8 +40,9 @@ int my_int_sort_function (gconstpointer a, gconstpointer b)
 
 int update_host_list()
 {
-   member_list = g_array_new(TRUE,TRUE,MAX_HOSTS);
+   funcEntry(logF,NULL,"update_host_list");
 
+   member_list = g_array_new(TRUE,TRUE,MAX_HOSTS);
    pthread_mutex_lock(&members_mutex);
    int j = 0;
    int i = 0;
@@ -54,10 +55,16 @@ int update_host_list()
    }             
    g_array_sort(member_list,my_int_sort_function);
    pthread_mutex_unlock(&members_mutex);
+
+   funcExit(logF,NULL,"update_host_list",0);
 }
+
 //still work to do
+
 int choose_host_hb_index(int key)
 {
+    funcEntry(logF,NULL,"choose_host_hb_index");
+
     int result;
     int i;
     char buffer[20];
@@ -86,7 +93,7 @@ int choose_host_hb_index(int key)
     // if hash_value is in between the element list 
 
     for(i=0;i<MAX_HOSTS-1;i++){
-            if(hash_value > ptr[i] && hash_value < ptr[i+1]){
+            if(hash_value > ptr[i] && hash_value <= ptr[i+1]){
                        result = ptr[i+1];
                        goto done;
             }
@@ -97,6 +104,7 @@ int choose_host_hb_index(int key)
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){
           if(atoi(hb_table[i].host_id)==result){
+                    funcExit(logF,NULL,"choose_host_hb_index",0);
                     return i;
           }
        }
@@ -382,9 +390,9 @@ int update_table(struct hb_entry *msg_table)
   pthread_mutex_lock(&table_mutex);
   for(i=0;i<MAX_HOSTS;i++){
        if(msg_table[i].valid && msg_table[i].status){
-                update_host_list();
+               // update_host_list();
               if(msg_table[i].hb_count > hb_table[i].hb_count){
-		       // update_host_list();  	
+		       update_host_list();  	
                        if(!hb_table[i].valid){
                                  hb_table[i].valid=1;
                                  strcpy(hb_table[i].host_id,msg_table[i].host_id);
