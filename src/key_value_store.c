@@ -137,6 +137,12 @@ int create_message_LOOKUP_RESULT(int key, char *value, char **message){
 		   *message = buffer;
 		   return 0;
 }
+int create_message_ERROR(char **message){
+                   char *buf = (char *)malloc(300);
+                   strcpy(buf,"ERROR:UNABLE TO COMPLETE THE REQUIRED OPERATION;");
+                   *message = buf;
+                   return 0;
+}
 /*
 struct op_code{
 	     int opcode;
@@ -155,7 +161,7 @@ int extract_message_op(char *message, struct op_code** instance){
                    strcpy(another_copy,message);
 
                    char delim_temp[5]=";";
-                   char *token1 = strtok(another_copy,delim_temp);
+                   char *token1 = strtok(another_copy,delim_temp); // extract the first part
                    char *token_on = (char *)malloc(strlen(token1));
                    strcpy(token_on,token1);                   
 
@@ -164,11 +170,11 @@ int extract_message_op(char *message, struct op_code** instance){
                    char *ip_port = (char *)malloc(strlen(token2));
                    strcpy(ip_port,token2);
 
-                   char *token3 = strtok(ip_port,":");   //port
-                   char *token4 = strtok(NULL,":");     //IP
-                   char IP[30];
+                   char *token3 = strtok(ip_port,":");   //extract port from 2nd part
+                   char *token4 = strtok(NULL,":");     //extract IP from 2nd part
+                   char IP[30];                       // store to IP
                    strcpy(IP,token4);
-                   char port[10];
+                   char port[10];                     // store to port
                    strcpy(port,token3);
 
                    *instance = (struct op_code *)malloc(sizeof(struct op_code));    
@@ -238,6 +244,16 @@ int extract_message_op(char *message, struct op_code** instance){
                             
                             return 1;
 		   }
+                   if(strcmp(token,"ERROR")==0){
+                            (*instance)->opcode = 99; // 99 is the error message opcode
+                            token = strtok(NULL,delim); //get error message
+                            char *value_instance = (char *)malloc(strlen(token));
+                            strcpy(value_instance,token);
+                            (*instance)->value = value_instance;
+                            
+                            return 1;
+                   }
+                             
                    if(strcmp(token,"INSERT_RESULT_SUCCESS")==0) return 6;
                    if(strcmp(token,"DELETE_RESULT_SUCCESS")==0) return 7;
                    if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0) return 8;
@@ -259,7 +275,7 @@ void main(){
    printf("hash value for hello world is %d\n",key1%360);
    int i=0;
    while(i<1000){
-    create_message_INSERT_RESULT_SUCCESS(100,&msg);
+    create_message_ERROR(&msg);
     append_port_ip_to_message("1234","192.168.100.100",msg);
     printf("%s\n",msg);
     free(msg);
@@ -267,7 +283,7 @@ void main(){
    }
 
    msg=0x0;
-   create_message_INSERT_RESULT_SUCCESS(100,&msg);
+   create_message_ERROR(&msg);
    append_port_ip_to_message("1234","192.168.100.100",msg);
 
    struct op_code *temp;
