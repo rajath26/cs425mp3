@@ -61,6 +61,7 @@
 #define INSERT_RESULT             6
 #define DELETE_RESULT             7
 #define UPDATE_RESULT             8
+#define ERROR_RESULT              99
 #define PRINT_KV                  5
 #define REORDER_CHECK_TIME_PERIOD 25
 #define LEADER_STRING             "leader"
