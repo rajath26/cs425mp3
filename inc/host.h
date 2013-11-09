@@ -39,27 +39,32 @@
 /*
  * Macros
  */
-#define SUCCESS            0
-#define ERROR              -1
-#define NUM_OF_CL_ARGS     5 
-#define LEADER             7
-#define MEMBER             8
-#define NUM_OF_THREADS     5 
-#define JOIN_OP_CODE       9
-#define RECEIVE_HB_OP_CODE 8
-#define GOSSIP_HOSTS       2
-#define NEW_INCARNATION    1
-#define REINCARNATION      2
-#define SMALL_BUF_SZ       100
-#define MED_BUF_SZ         1024
-#define LONG_BUF_SZ        4096
-#define INSERT_KV          1
-#define LOOKUP_KV          2
-#define UPDATE_KV          3
-#define DELETE_KV          4
-#define PRINT_KV           5
-#define LEADER_STRING      "leader"
-#define MEMBER_STRING      "member"
+#define SUCCESS                   0
+#define ERROR                     -1
+#define NUM_OF_CL_ARGS            5 
+#define LEADER                    7
+#define MEMBER                    8
+#define NUM_OF_THREADS            6   
+#define JOIN_OP_CODE              9
+#define RECEIVE_HB_OP_CODE        8
+#define GOSSIP_HOSTS              2
+#define NEW_INCARNATION           1
+#define REINCARNATION             2
+#define SMALL_BUF_SZ              100
+#define MED_BUF_SZ                1024
+#define LONG_BUF_SZ               4096
+#define INSERT_KV                 1
+#define LOOKUP_KV                 4 
+#define UPDATE_KV                 3 
+#define DELETE_KV                 2 
+#define LOOKUP_RESULT             5
+#define INSERT_RESULT             6
+#define DELETE_RESULT             7
+#define UPDATE_RESULT             8
+#define PRINT_KV                  5
+#define REORDER_CHECK_TIME_PERIOD 25
+#define LEADER_STRING             "leader"
+#define MEMBER_STRING             "member"
 
 /*
  * Global variables
