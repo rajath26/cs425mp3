@@ -36,6 +36,19 @@ struct op_code* retrieve_from_temp_list()
    return temp;
 }
 
+void print_key_value(gpointer key,gpointer value, gpointer dummy){
+         printf("key :%s, value : %s\n",(char *)key,(char *)value);
+}
+
+
+void iterate_hash_table(){
+         g_hash_table_foreach(key_value_store,print_key_value,NULL);
+}
+/*
+void print_key_value(char *key,char *value){
+         printf("key :%s, value : %s\n",key,value);
+}*/
+
 int create_hash_table(){
    key_value_store =  g_hash_table_new(g_str_hash,g_str_equal);
    if(key_value_store == NULL) return -1;
@@ -267,13 +280,14 @@ void main(){
 
 
   // create_message_XXXX examples
-  // struct op_code *temp=0x0;
+   struct op_code *temp=0x0;
    char *msg=0x0;
    char value[100] = "192.145.1.uselessfellowbloodyfellownonsense";
    int key = 100;
    int key1 = g_str_hash(value);
    printf("hash value for hello world is %d\n",key1%360);
    int i=0;
+/*
    while(i<1000){
     create_message_ERROR(&msg);
     append_port_ip_to_message("1234","192.168.100.100",msg);
@@ -302,6 +316,7 @@ void main(){
     i++;
     free(temp);
    }
+*/
 /*   
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
@@ -627,10 +642,15 @@ int m=0;
 
    printf("===================================================\n");
    printf("====================hash table creation============\n");
-/*   
+
+   create_message_LOOKUP_RESULT(123,value,&msg);
+   append_port_ip_to_message("1234","192.168.100.100",msg);
+   extract_message_op(msg,&temp);
    create_hash_table();
+
    insert_key_value_into_store(temp);
-   char *value123 = lookup_store_for_key(1234);
+   char *value123 = lookup_store_for_key(123);
+
    printf("%s\n",value123);
   
    temp->key = 3456;
@@ -638,8 +658,9 @@ int m=0;
    insert_key_value_into_store(temp);
    value123 = lookup_store_for_key(3456);
    printf("%s\n",value123);
-*/
-
+  
+   printf("----------iterating hash table--------\n");
+   iterate_hash_table();
 }          	
 		   
  
