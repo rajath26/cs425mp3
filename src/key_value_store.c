@@ -44,7 +44,7 @@ int create_hash_table(){
 //
 int insert_key_value_into_store(struct op_code* op_instance){
      char *buffer;
-     buffer = (char*)malloc(10);
+     buffer = (char*)malloc(200);
      sprintf(buffer,"%d",op_instance->key);
 
      gpointer key = (gpointer)buffer;
@@ -56,7 +56,7 @@ int insert_key_value_into_store(struct op_code* op_instance){
 char* lookup_store_for_key(int key){
     
      gpointer value;
-     char *buffer = (char *)malloc(10);
+     char *buffer = (char *)malloc(200);
      sprintf(buffer,"%d",key);
      gpointer key_temp = (gpointer)buffer;
      value = g_hash_table_lookup(key_value_store,key_temp);
@@ -66,7 +66,7 @@ char* lookup_store_for_key(int key){
 
 int delete_key_value_from_store(int key){
      int status;
-     char *buffer = (char *)malloc(10);
+     char *buffer = (char *)malloc(200);
      sprintf(buffer,"%d",key);
      status = g_hash_table_remove(key_value_store,buffer);
      if(status) 
@@ -107,7 +107,7 @@ int create_message_INSERT(int key, char *value, char **message){
 		   return 0;
 }
 int create_message_DELETE(int key, char **message){
-	           char *buffer = (char *)malloc(20);
+	           char *buffer = (char *)malloc(200);
 	           sprintf(buffer,"DELETE:%d;",key);
 		   *message = buffer;
 		   return 0;
@@ -120,7 +120,7 @@ int create_message_UPDATE(int key, char *value, char **message){
 		   return 0;
 }
 int create_message_LOOKUP(int key, char **message){
-	           char *buffer = (char *)malloc(20);
+	           char *buffer = (char *)malloc(200);
 		   sprintf(buffer,"LOOKUP:%d;",key);
 		   *message = buffer;
 		   return 0;
@@ -144,7 +144,7 @@ int extract_message_op(char *message, struct op_code** instance){
 	           char *original = (char *)malloc(strlen(message));
                    strcpy(original,message);
 
-		   *instance = (struct op_code *)malloc(sizeof(struct op_code));  // up-to the caller to free this
+	 	   *instance = (struct op_code *)malloc(sizeof(struct op_code));  // up-to the caller to free this
 
 		   char delim[5]=":";	
 		   char *token=strtok(original,delim); 	
@@ -206,7 +206,7 @@ int extract_message_op(char *message, struct op_code** instance){
                             
                             return 1;
 		   }
-                
+    
 }
 			
 
@@ -216,24 +216,33 @@ void main(){
 
 
   // create_message_XXXX examples
-   struct op_code *temp=0x0;
+  // struct op_code *temp=0x0;
    char *msg=0x0;
    char value[100] = "192.145.1.uselessfellowbloodyfellownonsense";
    int key = 100;
    int key1 = g_str_hash(value);
    printf("hash value for hello world is %d\n",key1%360);
-
+   int i=0;
+   while(i<1000){
+    create_message_INSERT(100,value,&msg);
+    printf("%s\n",msg);
+    free(msg);
+    i++;
+   }
 
    create_message_INSERT(100,value,&msg);
-   printf("%s\n",msg);
-   
-
-   extract_message_op(msg,&temp);
-   printf("%s\n",msg);
-   printf("key : %d\n",temp->key);
-   printf("value : %s\n",temp->value);
-   printf("opcode:%d\n",temp->opcode);
-   
+   struct op_code *temp;
+   i = 0;
+   while(i<1000){
+    memset(&temp,0,sizeof(struct op_code));
+    extract_message_op(msg,&temp);
+    printf("%s\n",msg);
+    printf("key : %d\n",temp->key);
+    printf("value : %s\n",temp->value);
+    printf("opcode:%d\n",temp->opcode);
+    i++;
+   }
+/*   
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
    free(msg);
@@ -249,7 +258,7 @@ void main(){
    free(msg);
    msg=0x0;
 
-/*
+
    create_message_LOOKUP_RESULT(1234,value,&msg);
    printf("%s\n",msg);
    free(msg);
@@ -257,8 +266,10 @@ void main(){
 */  
 //   struct op_code *temp;
   // extract_message examples
-  
-   printf("-----------------------\n");
+/*
+int m=0;
+
+   printf("-------%d----------------\n",m);
    create_message_INSERT(100,value,&msg);
    temp=0x0;
  //  struct op_code* temp;
@@ -271,7 +282,10 @@ void main(){
    free(temp);
    printf("-------------------------\n");
    msg=0x0;
+   m++;
 
+   msg=0x0;
+   temp=0x0;
    create_message_DELETE(1234,&msg);
    extract_message_op(msg,&temp);
    printf("key : %d\n",temp->key);
@@ -312,7 +326,12 @@ void main(){
    printf("opcode:%d\n",temp->opcode);
    free(msg);
    free(temp);
-   msg=0x0;  
+   msg=0x0;
+   
+   m++;  
+
+*/
+
 /*
    temp=NULL;
    char *msg1=NULL;
@@ -548,13 +567,18 @@ void main(){
 
    printf("===================================================\n");
    printf("====================hash table creation============\n");
-   /*
+/*   
    create_hash_table();
    insert_key_value_into_store(temp);
    char *value123 = lookup_store_for_key(1234);
-   printf("%s",value123);
-   */
-
+   printf("%s\n",value123);
+  
+   temp->key = 3456;
+   temp->value = "GRK";
+   insert_key_value_into_store(temp);
+   value123 = lookup_store_for_key(3456);
+   printf("%s\n",value123);
+*/
 
 }          	
 		   

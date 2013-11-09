@@ -24,6 +24,18 @@ char logMsg1[500];   // Global variable to send the log messages to the logger i
 GArray* member_list = 0x0;
 pthread_mutex_t members_mutex;
 
+//global hash value of my node
+
+int my_hash_value;
+
+int my_int_sort_function (gconstpointer a, gconstpointer b)
+{
+    int int_a = GPOINTER_TO_INT (a);
+    int int_b = GPOINTER_TO_INT (b);
+
+    return int_a - int_b;
+}
+
 // a mutex required ?
 
 int update_host_list()
@@ -40,12 +52,13 @@ int update_host_list()
                         member_list =  g_array_append_val(member_list, val);
             }
    }             
-   g_array_sort(member_list,&qsort);
+   g_array_sort(member_list,my_int_sort_function);
    pthread_mutex_unlock(&members_mutex);
 }
 //still work to do
-int choose_host_hash_value(int key)
+int choose_host_hb_index(int key)
 {
+    int result;
     int i;
     char buffer[20];
     sprintf(buffer,"%d",key);
@@ -57,23 +70,37 @@ int choose_host_hash_value(int key)
     }
     // if only one member is present
     if(ptr[1]==0){
-           return ptr[0];
+           result = ptr[0];
+           goto done;
     }
     // if hash_value is less than first element in the sorted list
     if(hash_value < ptr[0]){
-           return ptr[0];
+           result = ptr[0];
+           goto done;
     }
     // if hash_value is greater than the last element return the first value
     if(hash_value > ptr[MAX_HOSTS-1]){
-           return ptr[0];
+           result = ptr[0];
+           goto done;
     }
     // if hash_value is in between the element list 
 
     for(i=0;i<MAX_HOSTS-1;i++){
             if(hash_value > ptr[i] && hash_value < ptr[i+1]){
-                       return ptr[i+1];
+                       result = ptr[i+1];
+                       goto done;
             }
     }	 
+
+   done : 
+   
+   for(i=0;i<MAX_HOSTS;i++){
+       if(hb_table[i].valid && hb_table[i].status){
+          if(atoi(hb_table[i].host_id)==result){
+                    return i;
+          }
+       }
+   }             
 
 }
 /*
@@ -287,6 +314,7 @@ int initialize_table(char *port,char *ip,int host_id, char *tcp_port)
 
          sprintf(buffer,"%s#%s",hb_table[i].IP,hb_table[i].port); // combine IP and port to get the hash value
          int hash_key = g_str_hash(buffer)%360;
+         my_hash_value = hash_key;       
          sprintf(hb_table[i].host_id,"%d",hash_key);         
 
          strcpy(hb_table[i].tcp_port,tcp_port_no);
@@ -354,8 +382,9 @@ int update_table(struct hb_entry *msg_table)
   pthread_mutex_lock(&table_mutex);
   for(i=0;i<MAX_HOSTS;i++){
        if(msg_table[i].valid && msg_table[i].status){
+                update_host_list();
               if(msg_table[i].hb_count > hb_table[i].hb_count){
-		       update_host_list();  	
+		       // update_host_list();  	
                        if(!hb_table[i].valid){
                                  hb_table[i].valid=1;
                                  strcpy(hb_table[i].host_id,msg_table[i].host_id);
