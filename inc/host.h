@@ -44,7 +44,7 @@
 #define NUM_OF_CL_ARGS     5 
 #define LEADER             7
 #define MEMBER             8
-#define NUM_OF_THREADS     6 
+#define NUM_OF_THREADS     5 
 #define JOIN_OP_CODE       9
 #define RECEIVE_HB_OP_CODE 8
 #define GOSSIP_HOSTS       2
@@ -52,7 +52,12 @@
 #define REINCARNATION      2
 #define SMALL_BUF_SZ       100
 #define MED_BUF_SZ         1024
-#define LONG_BUF_SZ       4096
+#define LONG_BUF_SZ        4096
+#define INSERT_KV          1
+#define LOOKUP_KV          2
+#define UPDATE_KV          3
+#define DELETE_KV          4
+#define PRINT_KV           5
 #define LEADER_STRING      "leader"
 #define MEMBER_STRING      "member"
 
@@ -98,9 +103,10 @@ void leaveSystem(
                 );
 int intialize_local_key_value_store();
 int prepareNodeForSystemLeave();
-int sendKVFunc();
+//int sendKVFunc();
 int receiveKVFunc();
-int localKVReorderFunc();
+//int localKVReorderFunc();
+//int chosenKVFunc();
 
 /*
  * End 

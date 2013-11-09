@@ -446,15 +446,15 @@ void * startKelsa(void *threadNum)
         i_rc = heartBeatCheckerFunc();
         break;
 
-	case 3: 
+	/*case 3: 
 	// Fourth thread calls the send key value function that 
 	// i) Receives the instruction from the user 
 	// ii) Routes the request to the right node
         strcat(logMsg, "\texecuting sendKVFunc");
 	i_rc = sendKVFunc();
-	break;
+	break;*/
 
-	case 4:
+	case 3:
 	// Fifth thread calls receive key value function that 
 	// i) Receives operation instructions from send KV thread
 	// ii) Calls respective APIs to perform them on local kV store
@@ -462,7 +462,7 @@ void * startKelsa(void *threadNum)
 	i_rc = receiveKVFunc();
 	break;
 
-	case 5: 
+	case 4: 
 	// Sixth threads calls key value store reorder function that
 	// i) Reorders local key value store whenever a node joins 
 	//    the distributed system
@@ -860,8 +860,237 @@ void leaveSystem(int signNum)
 
     funcExit(logF, "Leaving Daisy Distributed System", "leaveSystem", 0);
 
-} // End of heartBeatChecker()
+} // End of leaveSystem()
 
+/****************************************************************
+ * NAME: initialize_key_value_store 
+ *
+ * DESCRIPTION: This is the function that initializes the local
+ *              key-value store
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int initialize_key_value_store()
+{
+
+    funcEntry(logF, ipAddress, "initialize_key_value_store");
+
+    int rc = SUCCESS,        // Return code
+        i_rc;                // Temp RC
+
+    // Create the hash table that stores the local key value store
+    i_rc = create_hash_table()
+    if ( i_rc != SUCCESS )
+    {
+         sprintf(logMsg, "\nUnable to create local key value store at IP address %s and host no %d\n", ipAddress, host_no);
+	 printf("%s", logMsg);
+	 printToLog(logF, ipAddress, logMsg);
+	 rc = ERROR;
+	 goto rtn;
+    }
+
+    printToLog(logF, ipAddress, "Created local key value store successfully");
+
+  rtn:
+    funcExit(logF, ipAddress, "initialize_key_value_store", rc);
+    return rc;
+    
+} // End of initialize_key_value_store()
+
+/****************************************************************
+ * NAME: sendKVFunc 
+ *
+ * DESCRIPTION: THis is the function that is responsible for 
+ *              i) accepting the action from the user on the key
+ *              value store 
+ *              ii) construct KV functionality op code
+ *              iii) determine the host to route the request
+ *              iv) create the message with KV op code
+ *              v) send the message to the node
+ *
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+/*
+int sendKVFunc()
+{
+
+    funcEntry(logF, ipAddress, "sendKVFunc");
+
+    int rc = SUCCESS,           // Return code
+        i_rc,                   // Temp RC 
+        chosenKVFunc;           // KV functionality chosen
+
+    for (;;)
+    {
+        /////////
+        // Step i
+        /////////
+        // Accept the action from the user on the local key value 
+        // store
+        chosenKVFunc = displayKVFunctionalities();
+        if ( (chosenKVFunc != INSERT_KV) || (chosenKVFunc != LOOKUP_KV) || (chosenKVFunc != UPDATE_KV) || (chosenKVFunc != DELETE_KV) )
+        {
+             printToLog(logF, ipAddress, "Improper functionality chosen");
+             continue;
+	}
+
+	//////////
+	// Step ii
+	//////////
+	// Construct the KV functionality op code
+
+    }
+
+  rtn:
+    funcExit(logF, ipAddress, "sendKVFunc", rc);
+    return rc;
+
+} // End of sendKVFunc()
+*/
+
+/****************************************************************
+ * NAME: displayKVFunctionalities 
+ *
+ * DESCRIPTION: This is the function that is responsible for 
+ *              displaying the key value store functionalities 
+ *              and accepting the input from the user 
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) INSERT_KV if insert functionality chosen  
+ *       LOOKUP_KV if lookup functionality chosen
+ *       UPDATE_KV if update functionality chosen
+ *       DELETE_KV if delete functionality chosen
+ *       PRINT_KV  if print  functionality chosen
+ * 
+ ****************************************************************/
+ /*
+int displayKVFunctionalities()
+{
+
+    funcEntry(logF, ipAddress, "displayKVFunctionalities");
+
+    int chosenKVFunc;            // Chosen KV functionality
+
+    printf("\n");
+    printf("\t\t**************************\n");
+    printf("\t\t**************************\n");
+    printf("\t\tWhat would you like to do?\n");
+    printf("\t\t**************************\n");
+    printf("\t\t**************************\n");
+ 
+    printf("\n");
+    printf("\t\t1) INSERT\n");
+    printf("\t\t2) UPDATE\n");
+    printf("\t\t3) DELETE\n");
+    printf
+
+    
+  rtn:
+    funcExit(logF, ipAddress, "displayKVFuncionalities", chosenKVFunc);
+    return chosenKVFunc;
+
+} // End of displayKVFunctionalities()
+*/
+
+/****************************************************************
+ * NAME: receiveKVFunc 
+ *
+ * DESCRIPTION: This is the function that is responsible for 
+ *              i) Receiving request from either the local client
+ *                 or a peer server
+ *              ii) Extract received IP and port and save it
+ *              iii) Extract received message 
+ *              iv) Determine where to route the request
+ *              v) if routing returns local
+ *                 then  
+ *                     based on op code 
+ *                     call respective API
+ *                     send result back to the requestor
+ *                 else
+ *                     send the result to another peer node
+ *                 fi
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int receiveKVFunc()
+{
+
+    funcEntry(logF, ipAddress, "receiveKVFunc");
+
+    int rc = SUCCESS,                     // Return code
+        numOfBytesRec,                    // Number of bytes receivedAA
+	i_rc;                             // Temp RC
+
+    char recMsg[LONG_BUF_SZ];             // Received message 
+
+    struct sockaddr_in requestorAddress;  // Requestor address
+
+    struct op_code *temp = NULL;
+
+    for(;;)
+    {
+         memset(recMsg, '\0', LONG_BUF_SZ);
+
+	 // Debug
+	 printToLog(logF, "recMsg before recvUDP", recMsg);
+
+         /////////
+	 // Step i
+	 /////////
+	 // Receive TCP message 
+	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &requestorAddress);
+	 // Check if 0 bytes is received 
+	 if ( SUCCESS == numOfBytesRec )
+	 {
+             sprintf(logMsg, "Number of bytes received is ZERO = %d", numOfBytesRec);
+	     printf("\n%s\n", logMsg);
+	     printToLog(logF, ipAddress, logMsg);
+	     continue;
+	 }
+
+	 // Debug
+	 printToLog(logF, "recMsg after recvTCP", recMsg);
+
+	 //////////
+	 // Step ii
+	 //////////
+         // Extract and store requestor information
+         // Requestor information will be stored in requestorAddress
+
+	 ///////////
+	 // Step iii
+	 ///////////
+	 // Extract received message
+	 i_rc = extract_message_op
+
+
+
+	 }
+    }
+
+  rtn:
+    funcExit(logF, ipAddress, "receiveKCFunc", rc);
+    return rc;
+
+} // End of receiveKVFunc()
 
 /*
  * Main function
@@ -944,7 +1173,7 @@ int main(int argc, char *argv[])
      * Init the local Key Value store i.e. 
      * the hash table 
      */
-    i_rc = intialize_local_key_value_store();
+    i_rc = initialize_local_key_value_store();
     if ( i_rc != IERR_OK )
     {
          sprintf(logMsg, "Unable to initialize local key value store at IP Address %s and host no %d", ipAddress, host_no);
