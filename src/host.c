@@ -1037,17 +1037,22 @@ int receiveKVFunc()
 
     int rc = SUCCESS,                     // Return code
         numOfBytesRec,                    // Number of bytes receivedAA
-	i_rc;                             // Temp RC
+	i_rc,                             // Temp RC
+        hash_index;                       // Hash index to host
 
     char recMsg[LONG_BUF_SZ];             // Received message 
 
     struct sockaddr_in requestorAddress;  // Requestor address
 
-    struct op_code *temp = NULL;
+    struct op_code *temp = NULL;          // KV OPCODE
 
     for(;;)
     {
-         memset(recMsg, '\0', LONG_BUF_SZ);
+         // Set all to NULL
+	 memset(recMsg, '\0', LONG_BUF_SZ);
+	 temp = NULL;
+         memset(&requestorAddress, 0, sizeof(struct sockadddr_in));
+	 numOfBytesRec = 0;
 
 	 // Debug
 	 printToLog(logF, "recMsg before recvUDP", recMsg);
@@ -1079,7 +1084,48 @@ int receiveKVFunc()
 	 // Step iii
 	 ///////////
 	 // Extract received message
-	 i_rc = extract_message_op
+	 i_rc = extract_message_op(recMsg, &temp);
+	 if ( ERROR == i_rc )
+	 {
+	     sprintf(logMsg, "Unable to extract received message. Return code of extract_message_op = %d", i_rc);
+	     printToLog(logF, ipAddress, logMsg);
+	     continue;
+	 }
+
+	 //////////
+	 // Step iv
+	 //////////
+	 // Determine where to route the request
+	 // i_rc is the hash index of the host in this case
+	 hash_index = choose_host_hb_index(temp->key);
+	 if ( ERROR == hash_index )
+	 {
+              sprintf(logMsg, "Unable to choose host to route the request. Return code of choose_host_hb_index() = %d", i_rc);
+	      printToLog(logF, ipAddress, logMsg);
+	      continue;
+	 }
+
+	 /////////
+	 // Step v
+	 /////////
+	 // If routing returns local index implies we have to perform
+	 // the requested operation on our local key value store 
+	 // else just send the original message to the host returned 
+	 // by choose_host_hb_index
+	 if ( hash_index == my_hash_index )
+	 {
+
+             
+
+	 } // End of if ( hash_index == my_hash_index )
+	 else 
+	 {
+
+
+	 } // End of else of if ( hash_index == my_hash_index )
+         
+
+
 
 
 
