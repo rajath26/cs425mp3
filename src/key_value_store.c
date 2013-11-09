@@ -8,6 +8,8 @@ struct op_code{
              int opcode;
              int key;
              char *value;
+             char port[15];
+             char IP[40];
 };
 
 
@@ -75,77 +77,62 @@ int delete_key_value_from_store(int key){
           return -1; //failure
 }
 
-
-
-/*
-int hash_key_to_node(int key){
-      // write logic for this  [it has to iterate through all the table entries and find the nearest match] 
-      
+int append_port_ip_to_message(char *port,char *ip,char *message){
+                   strcat(message,port);
+                   strcat(message,":");
+                   strcat(message,ip);
+                   strcat(message,";");
+                   return 0;
 }
-*/
-
-/*
-int create_migrate_key_message(){
-
-}
-*/
-
-/*
-int extract_migrate_key_message(){
-
-}
-*/
-
-
 
 //upto the caller to free the buffers in create_message_X cases
 int create_message_INSERT(int key, char *value, char **message){
 	           int len = strlen(value);
-	           char *buffer = (char *)malloc(len + 20);
+	           char *buffer = (char *)malloc(300);
 		   sprintf(buffer,"INSERT:%d:%s;",key,value);
 		   *message = buffer;
 		   return 0;
 }
 int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
-                   char *buffer = (char *)malloc(100);
+                   char *buffer = (char *)malloc(300);
                    sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
                    return 0;
 }
 int create_message_DELETE(int key, char **message){
-	           char *buffer = (char *)malloc(200);
+	           char *buffer = (char *)malloc(300);
 	           sprintf(buffer,"DELETE:%d;",key);
 		   *message = buffer;
 		   return 0;
 }
 int create_message_DELETE_RESULT_SUCCESS(int key, char **message){
-                   char *buffer = (char *)malloc(200);
+                   char *buffer = (char *)malloc(300);
                    sprintf(buffer,"DELETE_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
                    return 0;
 }
 int create_message_UPDATE(int key, char *value, char **message){
 	           int len = strlen(value);
-	           char *buffer = (char *)malloc(len+20);
+	           char *buffer = (char *)malloc(len+20+100);
 		   sprintf(buffer,"UPDATE:%d:%s;",key,value);
 		   *message = buffer;
 		   return 0;
 }
 int create_message_UPDATE_RESULT_SUCCESS(int key, char **message){
-                   char *buffer = (char *)malloc(200);
+                   char *buffer = (char *)malloc(300);
                    sprintf(buffer,"UPDATE_RESULT_SUCCESS:%d;",key);
                    *message = buffer;
                    return 0;
 }
 int create_message_LOOKUP(int key, char **message){
-	           char *buffer = (char *)malloc(200);
+	           char *buffer = (char *)malloc(300);
 		   sprintf(buffer,"LOOKUP:%d;",key);
 		   *message = buffer;
 		   return 0;
 }
 int create_message_LOOKUP_RESULT(int key, char *value, char **message){
 	           int len = strlen(value);
-		   char *buffer = (char *)malloc(len + 100);
+		   char *buffer = (char *)malloc(len + 300);
 		   sprintf(buffer,"LOOKUP_RESULT:%d:%s;",key,value);
 		   *message = buffer;
 		   return 0;
@@ -162,10 +149,37 @@ int extract_message_op(char *message, struct op_code** instance){
 	           char *original = (char *)malloc(strlen(message));
                    strcpy(original,message);
 
-	 	   *instance = (struct op_code *)malloc(sizeof(struct op_code));  // up-to the caller to free this
+                   // first extract the first part and then the second (port and the ip)
+
+                   char *another_copy = (char *)malloc(strlen(message));
+                   strcpy(another_copy,message);
+
+                   char delim_temp[5]=";";
+                   char *token1 = strtok(another_copy,delim_temp);
+                   char *token_on = (char *)malloc(strlen(token1));
+                   strcpy(token_on,token1);                   
+
+                   char *token2 = strtok(NULL,delim_temp);  // extract the second part
+
+                   char *ip_port = (char *)malloc(strlen(token2));
+                   strcpy(ip_port,token2);
+
+                   char *token3 = strtok(ip_port,":");   //port
+                   char *token4 = strtok(NULL,":");     //IP
+                   char IP[30];
+                   strcpy(IP,token4);
+                   char port[10];
+                   strcpy(port,token3);
+
+                   *instance = (struct op_code *)malloc(sizeof(struct op_code));    
+                 
+                   strcpy((*instance)->port,port);
+                   strcpy((*instance)->IP,IP); 
+
+	 	 //  *instance = (struct op_code *)malloc(sizeof(struct op_code));  // up-to the caller to free this
 
 		   char delim[5]=":";	
-		   char *token=strtok(original,delim); 	
+		   char *token=strtok(token_on,delim); 	
                     
 		   if (strcmp(token,"INSERT")==0){   //INSERT:KEY:VALUE;
 		            (*instance)->opcode = 1; // 1 is the op-code for insert
@@ -245,13 +259,17 @@ void main(){
    printf("hash value for hello world is %d\n",key1%360);
    int i=0;
    while(i<1000){
-    create_message_UPDATE_RESULT_SUCCESS(100,&msg);
+    create_message_INSERT_RESULT_SUCCESS(100,&msg);
+    append_port_ip_to_message("1234","192.168.100.100",msg);
     printf("%s\n",msg);
     free(msg);
     i++;
    }
 
-   create_message_UPDATE_RESULT_SUCCESS(100,&msg);
+   msg=0x0;
+   create_message_INSERT_RESULT_SUCCESS(100,&msg);
+   append_port_ip_to_message("1234","192.168.100.100",msg);
+
    struct op_code *temp;
    i = 0;
    int n;
@@ -260,10 +278,13 @@ void main(){
     n = extract_message_op(msg,&temp);
     printf("%d\n",n);
 
-  /*  printf("key : %d\n",temp->key);
+    printf("key : %d\n",temp->key);
     printf("value : %s\n",temp->value);
-    printf("opcode:%d\n",temp->opcode);*/
+    printf("opcode:%d\n",temp->opcode);
+    printf("IP : %s\n",temp->IP);
+    printf("Port : %s\n",temp->port);
     i++;
+    free(temp);
    }
 /*   
    create_message_DELETE(1234,&msg);
