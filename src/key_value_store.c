@@ -106,11 +106,23 @@ int create_message_INSERT(int key, char *value, char **message){
 		   *message = buffer;
 		   return 0;
 }
+int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
+                   char *buffer = (char *)malloc(100);
+                   sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
+                   *message = buffer;
+                   return 0;
+}
 int create_message_DELETE(int key, char **message){
 	           char *buffer = (char *)malloc(200);
 	           sprintf(buffer,"DELETE:%d;",key);
 		   *message = buffer;
 		   return 0;
+}
+int create_message_DELETE_RESULT_SUCCESS(int key, char **message){
+                   char *buffer = (char *)malloc(200);
+                   sprintf(buffer,"DELETE_RESULT_SUCCESS:%d;",key);
+                   *message = buffer;
+                   return 0;
 }
 int create_message_UPDATE(int key, char *value, char **message){
 	           int len = strlen(value);
@@ -118,6 +130,12 @@ int create_message_UPDATE(int key, char *value, char **message){
 		   sprintf(buffer,"UPDATE:%d:%s;",key,value);
 		   *message = buffer;
 		   return 0;
+}
+int create_message_UPDATE_RESULT_SUCCESS(int key, char **message){
+                   char *buffer = (char *)malloc(200);
+                   sprintf(buffer,"UPDATE_RESULT_SUCCESS:%d;",key);
+                   *message = buffer;
+                   return 0;
 }
 int create_message_LOOKUP(int key, char **message){
 	           char *buffer = (char *)malloc(200);
@@ -206,6 +224,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             
                             return 1;
 		   }
+                   if(strcmp(token,"INSERT_RESULT_SUCCESS")==0) return 6;
+                   if(strcmp(token,"DELETE_RESULT_SUCCESS")==0) return 7;
+                   if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0) return 8;
     
 }
 			
@@ -224,22 +245,24 @@ void main(){
    printf("hash value for hello world is %d\n",key1%360);
    int i=0;
    while(i<1000){
-    create_message_INSERT(100,value,&msg);
+    create_message_UPDATE_RESULT_SUCCESS(100,&msg);
     printf("%s\n",msg);
     free(msg);
     i++;
    }
 
-   create_message_INSERT(100,value,&msg);
+   create_message_UPDATE_RESULT_SUCCESS(100,&msg);
    struct op_code *temp;
    i = 0;
-   while(i<1000){
-    memset(&temp,0,sizeof(struct op_code));
-    extract_message_op(msg,&temp);
-    printf("%s\n",msg);
-    printf("key : %d\n",temp->key);
+   int n;
+   while(i<100){
+    temp=0x0;
+    n = extract_message_op(msg,&temp);
+    printf("%d\n",n);
+
+  /*  printf("key : %d\n",temp->key);
     printf("value : %s\n",temp->value);
-    printf("opcode:%d\n",temp->opcode);
+    printf("opcode:%d\n",temp->opcode);*/
     i++;
    }
 /*   
