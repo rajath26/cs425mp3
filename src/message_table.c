@@ -46,7 +46,7 @@ int update_host_list()
 {
    funcEntry(logF,NULL,"update_host_list");
 
-   member_list = g_array_new(TRUE,TRUE,MAX_HOSTS);
+   member_list = g_array_new(TRUE,TRUE,sizeof(gint));
    pthread_mutex_lock(&members_mutex);
    int j = 0;
    int i = 0;

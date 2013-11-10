@@ -1150,6 +1150,14 @@ int receiveKVFunc()
          // if one of the result op code no need to hash
          if (!resultOpCode)
          {
+
+             i_rc = update_host_list();
+             if ( ERROR == i_rc )
+             {
+                 sprintf(logMsg, "update host list failed");
+                 printToLog(logF, ipAddress, logMsg);
+                 continue;
+             }
 	     index = choose_host_hb_index(temp->key);
 	     if ( ERROR == index )
 	     {
