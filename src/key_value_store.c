@@ -155,6 +155,39 @@ int insert_key_value_into_store(struct op_code* op_instance){
      funcExit(logF,NULL,"insert_key_value_into_store",0);
 }
 
+int update_key_value_in_store(struct op_code * op_instance)
+{
+
+    funcEntry(logF, NULL, "update_key_value_into_store");
+
+    int rc = 0,
+        i_rc;
+
+    char * lookupValue;
+
+    lookupValue = lookup_store_for_key(temp->key);
+    if ( NULL == lookupValue ) 
+    {
+        // Key not found
+        rc = -1;
+        goto rtn;
+    }
+    else 
+    {
+        i_rc = insert_key_value_into_store(temp);
+        if ( -1 == i_rc )
+        {
+            rc = -1;
+            goto rtn;
+        } 
+    }
+
+  rtn:
+    funcExit(logF, NULL, "update_key_value_into_store", rc);
+    return rc;
+
+} // End of update_key_value_in_store
+
 char* lookup_store_for_key(int key){
     
      funcEntry(logF,NULL,"lookup_store_for_key");
@@ -214,7 +247,7 @@ int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
                    funcEntry(logF,NULL,"create_message_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
-                   *message = buffer;
+                   *message = buffer:
                    funcExit(logF,NULL,"create_message_RESULT_SUCCESS",0);
                    return 0;
 }

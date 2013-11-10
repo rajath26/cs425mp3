@@ -18,6 +18,8 @@ pthread_mutex_t table_mutex;
 
 int host_no=0;
 
+int reOrderTrigger = 0;
+
 struct two_hosts{
   int host_id;
   int valid;

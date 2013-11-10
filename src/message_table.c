@@ -31,6 +31,7 @@ pthread_mutex_t members_mutex;
 
 int my_hash_value;
 
+
 int my_int_sort_function (gconstpointer a, gconstpointer b)
 {
     int int_a = GPOINTER_TO_INT (a);

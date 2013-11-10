@@ -41,16 +41,21 @@
  */
 #define SUCCESS                   0
 #define ERROR                     -1
-#define CLIENT_NUM_OF_CL_ARGS     3
+#define CLIENT_NUM_OF_CL_ARGS     5 
 #define NUM_OF_THREADS            2
 
 /*
  * Global variables
  */
-int client_tcp;
+int tcp;
 char clientPortNo[SMALL_BUF_SZ];
 char clientIpAddr[SMALL_BUF_SZ];
 char serverPortNo[SMALL_BUF_SZ];
+char KVclientCmd[LONG_BUF_SZ];
+char opCode[SMALL_BUF_SZ];
+char key[SMALL_BUF_SZ];
+char value[LONG_BUF_SZ];
+char * msgToSend;
 struct sockaddr KVClientAddr;
 
 /*
@@ -59,6 +64,11 @@ struct sockaddr KVClientAddr;
 int KVClient_CLA_check(int argc, char *argv[]);
 int setUpTCP(char * portNo, char * ipAddress);
 int spawnHelperThreads();
+void * startKelsa(void *threadNum);
+int clientReceiveFunc();
+int clientSenderFunc();
+int parseKVClientCmd();
+int createAndSendOpMsg();
 
 /*
  * END
