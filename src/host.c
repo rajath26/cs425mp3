@@ -856,7 +856,7 @@ void leaveSystem(int signNum)
 
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
-    i_rc = preNodeForSystemLeave()
+    i_rc = prepareNodeForSystemLeave()
     if ( ERROR == i_rc )
     {
          sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
@@ -1510,7 +1510,7 @@ int printKVStore()
     int rc = SUCCESS,         // Return code
         i_rc;                 // Temp RC
 
-    char input[SMALL_BUF_SZ]; // Input
+    int input;                // Input
 
     printf("\n");
     printf("\t\t***************************************\n");
@@ -1520,11 +1520,15 @@ int printKVStore()
     printf("\t\t***************************************\n");
     for (;;)
     {
-        printf("\t\tI am the bot to let you print the local KV store\n");
-        printf("\t\tHit \"PRINT\" when you want to print the local key value store\n");
-        scanf("%s", input);
-        if ( SUCCESS == strcmp(input, "PRINT");
-           printLocalKVStore();
+        printf("\t\tI am a bot and I print the local KV store or my membership list\n");
+        printf("\t\t1)PRINT KV STORE\n");
+        printf("\t\t2)PRINT MEMBERSHIP LIST\n");
+        printf("\t\t$");
+        scanf("%d", input);
+        if ( (1 == input) ) 
+            iterate_hash_table();
+        else if ( (2 == input) ) 
+            print_table(hb_table);
         else 
            continue;
     }
