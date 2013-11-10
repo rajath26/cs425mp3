@@ -121,6 +121,8 @@ int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp, int connectOr
 
     int numOfBytesSent=0;               // Number of bytes sent 
 
+    int sd;
+
     struct sockaddr_in hostAddr;        // Address of host to send message
 
     sprintf(logMsg, "port no : %d ip address : %s new TCP : %d connectOrNot : %d", portNo, ipAddr, new_tcp, connectOrNot);
@@ -128,13 +130,23 @@ int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp, int connectOr
 
     if (connectOrNot)
     {
+        sd = socket(AF_INET, SOCK_STREAM, 0);
+        if ( ERROR == tcp )
+        {
+            printf("\nUnable to open socket\n");
+            printf("\nError number: %d\n", errno);
+            printf("\nExiting.... ... .. . . .\n");
+            perror("socket");
+            numOfBytesSent = 0;
+        }
+       
         memset(&hostAddr, 0, sizeof(struct sockaddr_in));
         hostAddr.sin_family = AF_INET;
         hostAddr.sin_port = htons(portNo);
         hostAddr.sin_addr.s_addr = inet_addr(ipAddr);
         memset(&(hostAddr.sin_zero), '\0', 8);
 
-        if ( connect( new_tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
+        if ( connect( sd, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
         {
             strcpy(logMsg, "Cannot connect to server");
             printToLog(logF, ipAddress, logMsg);
@@ -143,12 +155,16 @@ int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp, int connectOr
             goto rtn;
         }
     }
+
+    if (connectOrNot)
+        new_tcp = sd;
                
     //host_to_network(buffer);
     numOfBytesSent = send(new_tcp, buffer, strlen(buffer), 0);
 
 rtn:
     funcExit(logF, ipAddress, "sendTCP", numOfBytesSent);
+    //close(sd);
     return numOfBytesSent; 
 
 } // End of sendTCP()
