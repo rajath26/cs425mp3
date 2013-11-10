@@ -56,8 +56,10 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp,
 
     len = sizeof(hostAddr);
 
+    /*
     if (acceptOrNot)
         listen(tcp, LISTEN_QUEUE_LENGTH);
+    */
 
     if (acceptOrNot)
     {
