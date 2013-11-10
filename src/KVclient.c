@@ -109,9 +109,6 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "socket sucessful");
 
-
-    
-
     memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
     KVClientAddr.sin_family = AF_INET;
     KVClientAddr.sin_port = htons(atoi(portNo));
@@ -132,10 +129,6 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "bind successful");
 
-    //listen(tcp, LISTEN_QUEUE_LENGTH);
-
-   
-
   rtn:
     funcExit(logF, ipAddress, "setUpTCP", rc);
     return rc;
@@ -154,6 +147,7 @@ int setUpTCP(char * portNo, char * ipAddress)
  *       ERROR otherwise
  * 
  ****************************************************************/
+/*
 int spawnHelperThreads()
 {
 
@@ -167,10 +161,12 @@ int spawnHelperThreads()
     register int counter;                // Counter variable
 
     pthread_t threadID[NUM_OF_THREADS];  // Helper threads
-
+*/
     /*
      * Create threads:
      */
+
+/*
     for ( counter = 0; counter < NUM_OF_THREADS; counter++ )
     {
         ptr[counter] = (int *) malloc(sizeof(int));
@@ -197,6 +193,7 @@ int spawnHelperThreads()
   rtn:
     return rc;
 } // End of spawnHelperThreads()
+*/
 
 /****************************************************************
  * NAME: startKelsa 
@@ -211,6 +208,7 @@ int spawnHelperThreads()
  *       ERROR otherwise
  * 
  ****************************************************************/
+/*
 void * startKelsa(void *threadNum)
 {
 
@@ -252,6 +250,7 @@ void * startKelsa(void *threadNum)
     funcExit(logF, ipAddress, "startKelsa", 0);
 
 } // End of startKelsa()
+*/
 
 /****************************************************************
  * NAME: clientReceiveFunc 
@@ -285,7 +284,7 @@ int clientReceiveFunc()
 
     struct op_code *temp = NULL;
 
-    listen(tcp, LISTEN_QUEUE_LENGTH);
+    //listen(tcp, LISTEN_QUEUE_LENGTH);
 
     // The design is to execute client each time for each operation
 
@@ -776,13 +775,20 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Spawn helper threads
+     * Parse the received command and send to local server
      */
-    i_rc = spawnHelperThreads();
+    i_rc = clientSenderFunc();
     if ( i_rc != SUCCESS )
     {
-        rc = ERROR; 
-        goto rtn;
+         rc = ERROR;
+         goto rtn;
+    }
+
+    i_rc = clientReceiveFunc();
+    if ( i_rc != SUCCESS )
+    {
+         rc = ERROR;
+         goto rtn;
     }
 
   rtn:

@@ -1067,7 +1067,7 @@ int receiveKVFunc()
 
     struct op_code *temp = NULL;          // KV OPCODE
 
-    listen(tcp, LISTEN_QUEUE_LENGTH);
+    //listen(tcp, LISTEN_QUEUE_LENGTH);
 
     for(;;)
     {
