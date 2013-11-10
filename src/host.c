@@ -1494,6 +1494,7 @@ int printKVStore()
     printf("\t\t***************************************\n");
     for (;;)
     {
+        memset(input, '\0', 2);
         printf("\t\tI am a bot and I print the local KV store or my membership list\n");
         printf("\t\t1)PRINT KV STORE\n");
         printf("\t\t2)PRINT MEMBERSHIP LIST\n");
