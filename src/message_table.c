@@ -16,6 +16,9 @@
 //                   initialize a table.                                           //
 /////////////////////////////////////////////////////////////////////////////////////
 
+int current_table_count = 0;
+int prev_table_count = 0;
+
 
 char logMsg1[500];   // Global variable to send the log messages to the logger interface
 
@@ -424,6 +427,15 @@ int update_table(struct hb_entry *msg_table)
               }
        }
   }
+
+  for(i=0;i<MAX_HOSTS;i++){
+          if(hb_table[i].valid && hb_table[i].status){
+                          current_table_count++;
+           }
+  }
+  if(current_table_count > prev_table_count){
+                 
+  
   clear_temp_entry_table(msg_table);
   pthread_mutex_unlock(&table_mutex);
   printToLog(logF,ip_Address,logMsg1);
