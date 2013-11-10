@@ -72,21 +72,25 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          char IP[100];
          char message=0x0;
          char recMsg[4096];
-         struct sockaddr_in address;
+         //struct sockaddr_in address;
          struct op_code *temp = NULL;
          strcpy(port,hb_table[i].port);
          strcpy(IP,hb_table[i].IP);
+
+         // if 'i' not equal to host number
+         // delete_key_value_from_store(atoi((char *)key));
+
          create_message_INSERT((char *)key,(char *)value,&message);
          append_port_ip_to_message(port,IP,message);         
          sendKV:
-            numOfBytesSent = sendTCP(port, IP, message);
+          //  numOfBytesSent = sendTCP(port, IP, message);
             if ( 0 == numOfBytesSent )
             {
                 printToLog(logF, IP, "ZERO BYTES SENT");
                 goto sendKV;
             }
-            recvTCP(recMsg, 4096, &address);
-            i_rc = extract_messsage_op(recMsg, &temp);
+           // recvTCP(recMsg, 4096, &address);
+          //  i_rc = extract_messsage_op(recMsg, &temp);
             if ( -1 == i_rc )
             {
                 printToLog(logF, IP, "extract_message_op failed");
@@ -419,15 +423,15 @@ void main(){
    int i=0;
 
    while(i<1000){
-    create_message_LOOKUP(key,&msg);
-    append_port_ip_to_message("1234","192.168.100.100",msg);
+    create_message_LOOKUP_RESULT(key,value,&msg);
+    append_port_ip_to_message("1234","192.168.1.1",msg);
     printf("%s\n",msg);
     free(msg);
     i++;
    }
 
    msg=0x0;
-   create_message_LOOKUP(key,&msg);
+   create_message_LOOKUP_RESULT(key,value,&msg);
    append_port_ip_to_message("1234","192.168.100.100",msg);
 
    //struct op_code *temp;
