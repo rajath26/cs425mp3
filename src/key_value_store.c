@@ -30,8 +30,6 @@ GHashTable* key_value_store;
 pthread_mutex_t key_value_mutex;
 
 
-
-
 void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          funcEntry(logF,NULL,"preare_system_for_leave");
        //  int i = choose_host_hb_index(atoi((char*)key));
@@ -132,6 +130,7 @@ void print_key_value(gpointer key,gpointer value, gpointer dummy){
 
 void process_key_value(gpointer key,gpointer value, gpointer dummy){
 	 funcEntry(logF,NULL,"process_key_value");
+         update_host_list();
          int i = choose_host_hb_index(atoi((char*)key));         
          int i_rc;
          int numOfBytesSent;
