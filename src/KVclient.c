@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
     /*
      * Set up TCP 
      */
-    i_rc = setUpTCP(clientPortNo, clientIpAddress);
+    i_rc = setUpTCP(clientPortNo, clientIpAddr);
     if ( i_rc != SUCCESS )
     {
          rc = ERROR;
