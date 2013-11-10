@@ -109,6 +109,9 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "socket sucessful");
 
+
+    /*
+
     memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
     KVClientAddr.sin_family = AF_INET;
     KVClientAddr.sin_port = htons(atoi(portNo));
@@ -130,6 +133,8 @@ int setUpTCP(char * portNo, char * ipAddress)
     printToLog(logF, ipAddress, "bind successful");
 
     listen(tcp, LISTEN_QUEUE_LENGTH);
+
+    */
 
   rtn:
     funcExit(logF, ipAddress, "setUpTCP", rc);
