@@ -47,7 +47,7 @@
 /*
  * Global variables
  */
-int client_tcp;
+int tcp;
 char clientPortNo[SMALL_BUF_SZ];
 char clientIpAddr[SMALL_BUF_SZ];
 char serverPortNo[SMALL_BUF_SZ];

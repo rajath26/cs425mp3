@@ -88,7 +88,7 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     int rc = SUCCESS;
 
-    client_tcp = socket(AF_INET, SOCK_STREAM, 0);
+    tcp = socket(AF_INET, SOCK_STREAM, 0);
     if ( ERROR == tcp )
     {
         printf("\nUnable to open socket\n");
@@ -104,7 +104,7 @@ int setUpTCP(char * portNo, char * ipAddress)
     KVClientAddr.sin_addr.s_addr = inet_addr(ipAddress);
     memset(&(KVClientAddr.sin_zero), '\0', 8);
 
-    i_rc = bind(client_tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr));
+    i_rc = bind(tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr));
     if ( ERROR == i_rc )
     {
         printf("\nUnable to bind TCP socket\n");
@@ -116,7 +116,7 @@ int setUpTCP(char * portNo, char * ipAddress)
         goto rtn;
     }
 
-    listen(client_tcp, 10);
+    listen(tcp, LISTEN_QUEUE_LENGTH);
 
 } // End of setUpTCP()
 
