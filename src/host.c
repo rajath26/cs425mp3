@@ -1070,6 +1070,8 @@ int receiveKVFunc()
 
     for(;;)
     {
+
+         printToLog(logF, "Before memset", "HERE");
          // Set all to NULL
 	 memset(recMsg, '\0', LONG_BUF_SZ);
 	 memset(lookupValue, '\0', LONG_BUF_SZ);
@@ -1079,6 +1081,8 @@ int receiveKVFunc()
          memset(&receivedFromAddr, 0, sizeof(struct sockaddr_in));
 	 numOfBytesRec = 0;
          numOfBytesSent = 0;
+
+         printToLog(logF, "After memset", "HERE");
 
 	 // Debug
 	 printToLog(logF, "recMsg before recvUDP", recMsg);
