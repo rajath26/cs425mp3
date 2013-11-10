@@ -54,7 +54,8 @@ int recvTCP(
             char *buffer,        // Buffer to be received  
             int length,          // Length of buffer 
             struct sockaddr_in,  // Struct holding address
-            int *new_tcp
+            int *new_tcp,
+            int acceptOrNot
            );
 int sendTCP(
             int portNo,          // Port No

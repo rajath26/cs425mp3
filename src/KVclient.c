@@ -109,6 +109,8 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "socket sucessful");
 
+/*
+
     memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
     KVClientAddr.sin_family = AF_INET;
     KVClientAddr.sin_port = htons(atoi(portNo));
@@ -128,6 +130,8 @@ int setUpTCP(char * portNo, char * ipAddress)
     }
 
     printToLog(logF, ipAddress, "bind successful");
+
+   */
 
   rtn:
     funcExit(logF, ipAddress, "setUpTCP", rc);
@@ -276,7 +280,8 @@ int clientReceiveFunc()
     int rc = SUCCESS,
         numOfBytesRec,
         i_rc,
-        new_tcp;
+        new_tcp,
+        accept = 0;
 
     char recMsg[LONG_BUF_SZ];
 
@@ -293,7 +298,7 @@ int clientReceiveFunc()
         numOfBytesRec = 0;
         temp = NULL;
 
-        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress, &new_tcp);
+        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress, &new_tcp, accept);
         // Check if 0 bytes is received 
         if ( SUCCESS == numOfBytesRec )
         {

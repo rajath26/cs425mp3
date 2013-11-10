@@ -1056,7 +1056,8 @@ int receiveKVFunc()
         index,                            // Hash index to host
         portPN,                           // Hashed peer node port
         resultOpCode = 0,                 // Result op codes
-        new_tcp;                          // new TCP sd returned by accept
+        new_tcp,                          // new TCP sd returned by accept
+        accept = 1;
 
     char recMsg[LONG_BUF_SZ],             // Received message 
          * lookupValue,                   // Lookup value buffer
@@ -1092,7 +1093,7 @@ int receiveKVFunc()
 	 // Step i
 	 /////////
 	 // Receive TCP message 
-	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, receivedFromAddr, &new_tcp);
+	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, receivedFromAddr, &new_tcp, accept);
 	 // Check if 0 bytes is received 
 	 if ( SUCCESS == numOfBytesRec )
 	 {

@@ -36,13 +36,14 @@
  * (struct sockaddr_in) hostAddr - struct holding address of 
  *                                 host buffer received from
  * (int *) ret_tcp - pass by reference new socket descriptor
-                     returned by accept
+ *                   returned by accept
+ * (int) acceptOrNot - integer to tell whether to accept or not
  *
  * RETURN:
  * (int) bytes received 
  * 
  ****************************************************************/
-int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp)
+int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp, int acceptOrNot)
 {
 
     funcEntry(logF, ipAddress, "recvTCP");
@@ -55,16 +56,20 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp)
 
     len = sizeof(hostAddr);
 
-    listen(tcp, LISTEN_QUEUE_LENGTH);
+    if (acceptOrNot)
+        listen(tcp, LISTEN_QUEUE_LENGTH);
 
-    new_tcp = accept(tcp, (struct sockaddr *) &hostAddr, &len);
-    if ( new_tcp < SUCCESS )
+    if (acceptOrNot)
     {
-        strcpy(logMsg, "\nUNABLE TO ACCEPT NEW TCP\n");
-        printToLog(logF, ipAddress, logMsg);
-        printf("\n%s\n", logMsg);
-        numOfBytesRec = 0;
-        goto rtn;
+        new_tcp = accept(tcp, (struct sockaddr *) &hostAddr, &len);
+        if ( new_tcp < SUCCESS )
+        {
+            strcpy(logMsg, "\nUNABLE TO ACCEPT NEW TCP\n");
+            printToLog(logF, ipAddress, logMsg);
+            printf("\n%s\n", logMsg);
+            numOfBytesRec = 0;
+            goto rtn;
+        }
     }
 
     printToLog(logF, ipAddress, "ACCEPT SUCCESSFUL IN RECV TCP");
@@ -73,9 +78,15 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp)
     numOfBytesRec = recv(new_tcp, buffer, length, 0);
     //network_to_host(buffer);
 
-    *ret_tcp = new_tcp;
-    sprintf(logMsg, "NEW TCP : %d", new_tcp);
-    printToLog(logF, ipAddress, logMsg);
+    if (acceptOrNot)
+        *ret_tcp = new_tcp;
+    else
+        *ret_tcp = tcp;
+    if (acceptOrNot)
+    { 
+        sprintf(logMsg, "NEW TCP : %d", new_tcp);
+        printToLog(logF, ipAddress, logMsg);
+    }
 
   rtn:
     funcExit(logF, ipAddress, "recvTCP", numOfBytesRec);
