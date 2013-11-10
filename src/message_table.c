@@ -91,15 +91,19 @@ int choose_host_hb_index(int key)
            goto done;
     }
     // if hash_value is in between the element list 
-
+    int flag=0;
     for(i=0;i<MAX_HOSTS-1;i++){
+         if(hash_value==ptr[i]){ result = ptr[i]; goto done;}
+
             if(hash_value > ptr[i] && hash_value <= ptr[i+1]){
                        result = ptr[i+1];
+                       flag = 1;          
                        goto done;
             }
     }	 
 
    done : 
+   if (flag==0) return host_no;
    
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){

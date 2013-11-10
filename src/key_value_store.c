@@ -4,6 +4,16 @@
 #include<glib.h>
 #include"message_table.c"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <sys/time.h>
+#include <signal.h>
+
 
 struct op_code{
              int opcode;
@@ -53,6 +63,51 @@ void print_key_value(gpointer key,gpointer value, gpointer dummy){
          funcExit(logF,NULL,"print_key_value",0);
 }
 
+void process_key_value(gpointer key,gpointer value, gpointer dummy){
+	 funcEntry(logF,NULL,"process_key_value");
+         int i = choose_host_hb_index(atoi((char*)key));         
+         int i_rc;
+         int numOfBytesSent;
+         char port[20];
+         char IP[100];
+         char message=0x0;
+         char recMsg[4096];
+         //struct sockaddr_in address;
+         struct op_code *temp = NULL;
+         strcpy(port,hb_table[i].port);
+         strcpy(IP,hb_table[i].IP);
+
+         // if 'i' not equal to host number
+         // delete_key_value_from_store(atoi((char *)key));
+
+         create_message_INSERT((char *)key,(char *)value,&message);
+         append_port_ip_to_message(port,IP,message);         
+         sendKV:
+          //  numOfBytesSent = sendTCP(port, IP, message);
+            if ( 0 == numOfBytesSent )
+            {
+                printToLog(logF, IP, "ZERO BYTES SENT");
+                goto sendKV;
+            }
+           // recvTCP(recMsg, 4096, &address);
+          //  i_rc = extract_messsage_op(recMsg, &temp);
+            if ( -1 == i_rc )
+            {
+                printToLog(logF, IP, "extract_message_op failed");
+                return;
+            }
+            if ( temp->opcode != 6 )
+            {
+                printToLog(logF, IP, "Insertion failed. Retry send");
+                goto sendKV;
+            }
+         funcExit(logF,NULL,"process_key_value",0);
+}
+void reorganize_key_value_store(){
+         funcEntry(logF,NULL,"reorganize_key_value_store");
+         g_hash_table_foreach(key_value_store,process_key_value,NULL);
+         funcExit(logF,NULL,"reorganize_key_value_store",0);
+}
 
 void iterate_hash_table(){
          funcEntry(logF,NULL,"iterate_hash_table");
@@ -366,20 +421,20 @@ void main(){
    int key1 = g_str_hash(value);
    printf("hash value for hello world is %d\n",key1%360);
    int i=0;
-/*
+
    while(i<1000){
-    create_message_ERROR(&msg);
-    append_port_ip_to_message("1234","192.168.100.100",msg);
+    create_message_LOOKUP_RESULT(key,value,&msg);
+    append_port_ip_to_message("1234","192.168.1.1",msg);
     printf("%s\n",msg);
     free(msg);
     i++;
    }
 
    msg=0x0;
-   create_message_ERROR(&msg);
+   create_message_LOOKUP_RESULT(key,value,&msg);
    append_port_ip_to_message("1234","192.168.100.100",msg);
 
-   struct op_code *temp;
+   //struct op_code *temp;
    i = 0;
    int n;
    while(i<100){
@@ -395,7 +450,7 @@ void main(){
     i++;
     free(temp);
    }
-*/
+
 /*   
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
