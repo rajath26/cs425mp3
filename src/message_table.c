@@ -445,6 +445,7 @@ int update_table(struct hb_entry *msg_table)
            }
   }
   if(current_table_count != prev_table_count){
+                     printToLog(logF, "SETTING REORDER TRIGGER", "Yay");
                      reOrderTrigger = 1;
                      prev_table_count = current_table_count;
   }

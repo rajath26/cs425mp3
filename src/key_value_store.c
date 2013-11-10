@@ -43,7 +43,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                update_host_list();
                int i = choose_host_hb_index(atoi((char*)key));
                create_message_INSERT((char *)key,(char *)value,&message);
-               append_port_ip_to_message(port,IP,message);
+               append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
                int numOfBytesSent = sendTCP(port, IP, message, tcp, 1);
@@ -117,7 +117,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          // delete_key_value_from_store(atoi((char *)key));
          if(i!=host_no){
              create_message_INSERT((char *)key,(char *)value,&message);
-             append_port_ip_to_message(port,IP,message);         
+             append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);         
              //sendKV:
              int  numOfBytesSent = sendTCP(port, IP, message, tcp, 1);
              if ( 0 == numOfBytesSent )
