@@ -564,6 +564,8 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
+            sprintf(logMsg, "client port no before append %s", clientPortNo);
+            printToLog(logF, ipAddress, logMsg);
             i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
             printToLog(logF, ipAddress, "Message returned by append");
             printToLog(logF, ipAddress, msgToSend);

@@ -95,6 +95,9 @@ int sendTCP(int portNo, char * ipAddr, char * buffer)
 
     struct sockaddr_in hostAddr;        // Address of host to send message
 
+    sprintf(logMsg, "port no : %d ip address : %s", portNo, ipAddr);
+    printToLog(logF, ipAddress, logMsg);
+
     memset(&hostAddr, 0, sizeof(struct sockaddr_in));
     hostAddr.sin_family = AF_INET;
     hostAddr.sin_port = htons(portNo);
