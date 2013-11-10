@@ -40,6 +40,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          guint m = g_hash_table_size(key_value_store);
          char *message;
          if(m!=0){
+               update_host_list();
                int i = choose_host_hb_index(atoi((char*)key));
                create_message_INSERT((char *)key,(char *)value,&message);
                append_port_ip_to_message(port,IP,message);

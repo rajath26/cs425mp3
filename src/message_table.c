@@ -32,12 +32,11 @@ pthread_mutex_t members_mutex;
 int my_hash_value;
 
 
-int my_int_sort_function (gconstpointer a, gconstpointer b)
+int my_int_sort_function (gpointer a, gpointer b)
 {
-    int int_a = GPOINTER_TO_INT (a);
-    int int_b = GPOINTER_TO_INT (b);
-
-    return int_a - int_b;
+    int* x = (int*)a;
+    int* y = (int*)b;
+    return *x - *y;
 }
 
 // a mutex required ?
@@ -45,10 +44,8 @@ int my_int_sort_function (gconstpointer a, gconstpointer b)
 int update_host_list()
 {
    funcEntry(logF,NULL,"update_host_list");
-
-   member_list = g_array_new(TRUE,TRUE,sizeof(gint));
-   if (member_list != NULL)
-       printToLog(logF, "created properly", "yay");
+                                                     // put print to log here
+   member_list = g_array_new(FALSE,FALSE,sizeof(int));// change 1
    pthread_mutex_lock(&members_mutex);
    int j = 0;
    int i = 0;
@@ -56,10 +53,10 @@ int update_host_list()
    for(i=0;i<MAX_HOSTS;i++){
             if(hb_table[i].valid && hb_table[i].status){
                         int val = atoi(hb_table[i].host_id);
-                        member_list =  g_array_append_val(member_list, val);
+                        g_array_append_val(member_list, val);
             }
    }             
-   g_array_sort(member_list,my_int_sort_function);
+   g_array_sort(member_list,(GCompareFunc)my_int_sort_function);
    pthread_mutex_unlock(&members_mutex);
 
    funcExit(logF,NULL,"update_host_list",0);
@@ -74,56 +71,53 @@ int choose_host_hb_index(int key)
     int result;
     int i;
     char buffer[20];
-    char log[20];
-    sprintf(log, "KEY: %d", key);
-    printToLog(logF, "KEY************", log);
     sprintf(buffer,"%d",key);
-    printToLog(logF, "before g_str_hash", "hi");
     int hash_value = g_str_hash(buffer) % 360;
-    printToLog(logF, "after g_str_hash", "hi");
-    int *ptr= (int *)member_list;
-    printToLog(logF, "I am here", "Hmmm");
+    int a[member_list->len];
+   
+    for(i=0;i<member_list->len;i++){
+         a[i] = g_array_index(member_list,int,i);
+    }
+
+     
     // impossible case, expect atleast one element to be present
-    if(ptr[0]==0){
+    if( member_list->len == 0){
            return -1;
     }
     // if only one member is present
-    if(ptr[1]==0){
-           result = ptr[0];
-           printToLog(logF, "GOD DAMN IT", "I AM DONE");
-           goto done;
+    if( member_list->len == 1){
+          result =  a[0];
+          goto done;
     }
-
-    printToLog(logF, "I AM HERE", "WOOOOO");
     // if hash_value is less than first element in the sorted list
-    if(hash_value < ptr[0]){
-           result = ptr[0];
+    if(hash_value < a[0]){
+           result = a[0];
            goto done;
     }
-    // if hash_value is greater than the last element return the first value
-    /* 
-    if(hash_value > ptr[MAX_HOSTS-1]){
-           result = ptr[0];
-           goto done;
+    if(hash_value > a[member_list->len - 1]){
+            result = a[0];
+            goto done;
     }
-    */
     // if hash_value is in between the element list 
-    printToLog(logF, "I AM HERE", "HELLO");
+    //
+    printToLog(logF,"I am here","hello");
     int flag=0;
-    for(i=0;i<MAX_HOSTS-1;i++){
-         if(hash_value==ptr[i]){ result = ptr[i]; goto done;}
+    for(i=0;i<member_list->len;i++){
+         if(hash_value == a[i]){ 
+            result = a[i];
+            goto done;
+         }
 
-            if(hash_value > ptr[i] && hash_value <= ptr[i+1]){
-                       result = ptr[i+1];
+            if(hash_value > a[i] && hash_value < a[i+1]){
+                       result = a[i+1];
                        flag = 1;          
                        goto done;
             }
     }	 
-
-   if (flag==0) return ptr[0];
+   printToLog(logF,"I am here too","hello");
 
    done:
-   printToLog(logF, "I am in DONE", "SO I AM DONE");
+   
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){
           if(atoi(hb_table[i].host_id)==result){
