@@ -1391,10 +1391,9 @@ int receiveKVFunc()
                      // requestor
 		     else
 		     {
-                         strcpy(temp->value, lookupValue);
-		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, temp->value);
+		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, lookupValue);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_LOOKUP_RESULT(temp->key, temp->value, &retMsg);
+                         i_rc = create_message_LOOKUP_RESULT(temp->key, lookupValue, &retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
