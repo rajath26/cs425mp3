@@ -316,6 +316,8 @@ int clientReceiveFunc()
             rc = ERROR;
             goto rtn; 
         }
+        if ( (i_rc == INSERT_RESULT) || (i_rc == DELETE_RESULT) || (i_rc == UPDATE_RESULT) )
+            temp->opcode = i_rc;
 
         sprintf(logMsg, "RECEIVED OP CODE : %d", temp->opcode);
         printToLog(logF, "REceived OP CODE", logMsg); 
