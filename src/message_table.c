@@ -72,7 +72,9 @@ int choose_host_hb_index(int key)
     int result;
     int i;
     char buffer[20];
-    printToLog(logF, "KEY************", key);
+    char log[20];
+    sprintf(log, "KEY: %d", key);
+    printToLog(logF, "KEY************", log);
     sprintf(buffer,"%d",key);
     printToLog(logF, "before g_str_hash", "hi");
     int hash_value = g_str_hash(buffer) % 360;
