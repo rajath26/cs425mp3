@@ -1410,6 +1410,10 @@ int receiveKVFunc()
                      // Nothing here as of now 
 		 break;
 
+                 case ERROR:
+                     // Nothing here as of now
+                 break;
+
                  default:
 		     // We should never ever be here 
 		     sprintf(logMsg, "Invalid KV OP code received so just continue along");
