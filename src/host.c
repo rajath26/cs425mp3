@@ -450,14 +450,6 @@ void * startKelsa(void *threadNum)
         i_rc = heartBeatCheckerFunc();
         break;
 
-	/*case 3: 
-	// Fourth thread calls the send key value function that 
-	// i) Receives the instruction from the user 
-	// ii) Routes the request to the right node
-        strcat(logMsg, "\texecuting sendKVFunc");
-	i_rc = sendKVFunc();
-	break;*/
-
 	case 3:
 	// Fourth thread calls receive key value function that 
 	// i) Receives operation instructions from send KV thread
@@ -858,15 +850,6 @@ void leaveSystem(int signNum)
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
     prepareNodeForSystemLeave();
-    /*
-    if ( ERROR == i_rc )
-    {
-         sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
-         printToLog(logF, ipAddress, logMsg);
-         printf("\n%s\n", logMsg);
-         printToLog(logF, ipAddress, "Proceeding to close to the UDP and TCP ports after receiving an error");
-    }  
-    */
     
     close(udp);
     close(tcp);
@@ -1426,6 +1409,8 @@ int receiveKVFunc()
 
   rtn:
     funcExit(logF, ipAddress, "receiveKCFunc", rc);
+    close(clientFd);
+    close(peerSocket);
     return rc;
 
 } // End of receiveKVFunc()
@@ -1466,17 +1451,8 @@ int localKVReorderFunc()
 
         if (reOrderTrigger) 
         {
+            printToLog(logF, "REORGANIZING KV STORE", "REORG");
             reorganize_key_value_store();
-            /*
-            if ( ERROR == i_rc )
-            {
-                printToLog(logF, ipAddress, "error while reordering local KV store");
-            }
-            else 
-            {
-                printToLog(logF, ipAddress, "SUCCESSFULLY REORDERED LOCAL KV STORE");
-            }
-            */
         }
 
     } // End of while(1)
@@ -1724,6 +1700,12 @@ int main(int argc, char *argv[])
     {
         logFileClose(logF);
     }
+
+    /*
+     * Close the sockets
+     */
+    close(tcp);
+    close(udp);
 
     return rc;
 
