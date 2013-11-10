@@ -1484,7 +1484,7 @@ int printKVStore()
     int rc = SUCCESS,         // Return code
         i_rc;                 // Temp RC
 
-    int input;                // Input
+    char input[2];            // Input
 
     printf("\n");
     printf("\t\t***************************************\n");
@@ -1498,13 +1498,18 @@ int printKVStore()
         printf("\t\t1)PRINT KV STORE\n");
         printf("\t\t2)PRINT MEMBERSHIP LIST\n");
         printf("\t\t$");
-        scanf("%d", &input);
-        if ( (1 == input) ) 
+        //scanf("%d", &input);
+        fgets(input, 2, stdin);
+        if ( (0 == strcmp(input, "1") ) )
             iterate_hash_table();
-        else if ( (2 == input) ) 
+        else if ( (0 == strcmp(input, "2") ) )
             print_table(hb_table);
         else 
-           continue;
+        {
+            printf("\nInvalid Choice. Try after 15 secs\n");
+            sleep(15);
+            continue;
+        }
     }
 
   rtn:
