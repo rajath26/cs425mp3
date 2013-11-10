@@ -856,7 +856,7 @@ void leaveSystem(int signNum)
 
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
-    i_rc = preNodeForSystemLeave()
+    i_rc = prepareNodeForSystemLeave()
     if ( ERROR == i_rc )
     {
          sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
@@ -1051,7 +1051,8 @@ int receiveKVFunc()
 	numOfBytesSent,                   // Number of bytes sent
 	i_rc,                             // Temp RC
         index,                            // Hash index to host
-        portPN;                           // Hashed peer node port
+        portPN,                           // Hashed peer node port
+        resultOpCode = 0;                 // Result op codes
 
     char recMsg[LONG_BUF_SZ],             // Received message 
          * lookupValue,                   // Lookup value buffer
@@ -1120,40 +1121,54 @@ int receiveKVFunc()
 	 }
 
          printToLog(logF, "successfully extracted message", recMsg);
-         sprintf(logMsg, "opcode: %d, key: %d, value: %s", temp->opcode, temp->key, *(temp->value));
+         sprintf(logMsg, "opcode: %d, key: %d, value: %s", temp->opcode, temp->key, temp->value);
          printToLog(logF, ipAddress, logMsg);
+
+         // If the received message is one of the following op 
+         // codes then no need to hash the key
+         // INSERT_RESULT
+         // LOOKUP_RESULT
+         // UPDATE_RESULT
+         // DELETE_RESULT
+         if ( (INSERT_RESULT == temp->opcode) || (LOOKUP_RESULT == temp->opcode) || (UPDATE_RESULT == temp->opcode) ||  (DELETE_RESULT == temp->opcode) )
+             resultOpCode = 1; 
 
 	 //////////
 	 // Step iv
 	 //////////
 	 // Determine where to route the request
 	 // i_rc is the hash index of the host in this case
-	 index = choose_host_hb_index(temp->key);
-	 if ( ERROR == hash_index )
-	 {
-              sprintf(logMsg, "Unable to choose host to route the request. Return code of choose_host_hb_index() = %d", i_rc);
-	      printToLog(logF, ipAddress, logMsg);
-	      continue;
-	 }
+         // if one of the result op code no need to hash
+         if (!resultOpCode)
+         {
+	     index = choose_host_hb_index(temp->key);
+	     if ( ERROR == hash_index )
+	     {
+                 sprintf(logMsg, "Unable to choose host to route the request. Return code of choose_host_hb_index() = %d", i_rc);
+	         printToLog(logF, ipAddress, logMsg);
+	         continue;
+	     }
 
-         sprintf(logMsg, "Hash index : %d", hash_index); 
-         printToLog(logF, ipAddress, logMsg);
+             sprintf(logMsg, "Hash index : %d", hash_index); 
+             printToLog(logF, ipAddress, logMsg);
+         }
 
 	 /////////
 	 // Step v
 	 /////////
 	 // If routing returns local index implies we have to perform
 	 // the requested operation on our local key value store 
+         // If this is a result op code just enter and do nothing
 	 // else just send the original message to the host returned 
 	 // by choose_host_hb_index
 
          ///////////
          // If LOCAL 
          ///////////
-	 if ( atoi(hb_table[index].host_id) == my_hash_value )
+	 if ( (atoi(hb_table[index].host_id) == my_hash_value) || resultOpCode )
 	 {
 
-             printToLog(logF, ipAddress, "Local route");
+             printToLog(logF, ipAddress, "Local route or result op code");
 
              // Do the operation on the local key value store 
 	     // based on the KV opcode
@@ -1167,7 +1182,7 @@ int receiveKVFunc()
 		     // requestor
 		     if ( ERROR == i_rc )
 		     {
-                          sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+                          sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			  printToLog(logF, ipAddress, logMsg);
 			  i_rc = create_message_ERROR(temp, &retMsg);
 			  if ( ERROR == i_rc )
@@ -1192,7 +1207,7 @@ int receiveKVFunc()
                      // requestor
 		     else 
 		     {
-                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, *(temp->value));
+                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
 			 i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, &retMsg);
 			 if ( ERROR == i_rc )
@@ -1222,7 +1237,7 @@ int receiveKVFunc()
                      // requestor
 		     if ( ERROR == i_rc )
 		     {
-		         sprintf(logMsg, "There was an ERROR while DELETING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+		         sprintf(logMsg, "There was an ERROR while DELETING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_ERROR(temp, &retMsg);
                          if ( ERROR == i_rc )
@@ -1247,7 +1262,7 @@ int receiveKVFunc()
                      // requestor
 		     else
 		     {
-		         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY DELETED", temp->key, *(temp->value));
+		         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY DELETED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_DELETE_RESULT_SUCCESS(temp->key, &retMsg);
                          if ( ERROR == i_rc )
@@ -1277,7 +1292,7 @@ int receiveKVFunc()
                      // requestor
 		     if ( ERROR == i_rc )
 		     {
-                         sprintf(logMsg, "There was an ERROR while UPDATING %d = %s KV pair into the local KV store", temp->key, *(temp->value));
+                         sprintf(logMsg, "There was an ERROR while UPDATING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_ERROR(temp, &retMsg);
                          if ( ERROR == i_rc )
@@ -1300,7 +1315,7 @@ int receiveKVFunc()
 		     }
 		     else 
 		     {
-                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY UPDATED", temp->key, *(temp->value));
+                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY UPDATED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_UPDATE_RESULT_SUCCESS(temp->key, &retMsg);
                          if ( ERROR == i_rc )
@@ -1331,7 +1346,7 @@ int receiveKVFunc()
                      // requestor
                      if ( NULL == lookupValue ) 
 		     {
-		         sprintf(logMsg, "There was an ERROR during LOOKUP of %d = %s KV pair in the local KV store", temp->key, *(temp->value));
+		         sprintf(logMsg, "There was an ERROR during LOOKUP of %d = %s KV pair in the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_ERROR(temp, &retMsg);
                          if ( ERROR == i_rc )
@@ -1356,9 +1371,9 @@ int receiveKVFunc()
                      // requestor
 		     else
 		     {
-		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, *(temp->value));
+		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_LOOKUP_RESULT(temp->key, *(temp->value), &retMsg);
+                         i_rc = create_message_LOOKUP_RESULT(temp->key, temp->value, &retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
@@ -1394,6 +1409,10 @@ int receiveKVFunc()
 		 case UPDATE_RESULT:
                      // Nothing here as of now 
 		 break;
+
+                 case ERROR:
+                     // Nothing here as of now
+                 break;
 
                  default:
 		     // We should never ever be here 
@@ -1510,7 +1529,7 @@ int printKVStore()
     int rc = SUCCESS,         // Return code
         i_rc;                 // Temp RC
 
-    char input[SMALL_BUF_SZ]; // Input
+    int input;                // Input
 
     printf("\n");
     printf("\t\t***************************************\n");
@@ -1520,11 +1539,15 @@ int printKVStore()
     printf("\t\t***************************************\n");
     for (;;)
     {
-        printf("\t\tI am the bot to let you print the local KV store\n");
-        printf("\t\tHit \"PRINT\" when you want to print the local key value store\n");
-        scanf("%s", input);
-        if ( SUCCESS == strcmp(input, "PRINT");
-           printLocalKVStore();
+        printf("\t\tI am a bot and I print the local KV store or my membership list\n");
+        printf("\t\t1)PRINT KV STORE\n");
+        printf("\t\t2)PRINT MEMBERSHIP LIST\n");
+        printf("\t\t$");
+        scanf("%d", input);
+        if ( (1 == input) ) 
+            iterate_hash_table();
+        else if ( (2 == input) ) 
+            print_table(hb_table);
         else 
            continue;
     }

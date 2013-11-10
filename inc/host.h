@@ -111,8 +111,8 @@ int intialize_local_key_value_store();
 int prepareNodeForSystemLeave();
 //int sendKVFunc();
 int receiveKVFunc();
-//int localKVReorderFunc();
-//int chosenKVFunc();
+int localKVReorderFunc();
+int printKVStore();
 
 /*
  * End 
