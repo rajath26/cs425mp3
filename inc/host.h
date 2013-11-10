@@ -108,7 +108,7 @@ void leaveSystem(
                  int signum            // Signal
                 );
 int intialize_local_key_value_store();
-int prepareNodeForSystemLeave();
+//int prepareNodeForSystemLeave();
 //int sendKVFunc();
 int receiveKVFunc();
 int localKVReorderFunc();

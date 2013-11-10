@@ -859,7 +859,8 @@ void leaveSystem(int signNum)
 
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
-    i_rc = prepareNodeForSystemLeave();
+    prepareNodeForSystemLeave();
+    /*
     if ( ERROR == i_rc )
     {
          sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
@@ -867,6 +868,7 @@ void leaveSystem(int signNum)
          printf("\n%s\n", logMsg);
          printToLog(logF, ipAddress, "Proceeding to close to the UDP and TCP ports after receiving an error");
     }  
+    */
     
     close(udp);
     close(tcp);
