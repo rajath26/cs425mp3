@@ -109,30 +109,6 @@ int setUpTCP(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "socket sucessful");
 
-/*
-
-    memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
-    KVClientAddr.sin_family = AF_INET;
-    KVClientAddr.sin_port = htons(atoi(portNo));
-    KVClientAddr.sin_addr.s_addr = inet_addr(ipAddress);
-    memset(&(KVClientAddr.sin_zero), '\0', 8);
-
-    i_rc = bind(tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr));
-    if ( ERROR == i_rc )
-    {
-        printf("\nUnable to bind TCP socket\n");
-        printf("\nError number: %d\n", errno);
-        printf("\nExiting.... ... .. . . .\n");
-        perror("bind");
-        printToLog(logF, ipAddress, "TCP bind() failure");
-        rc = ERROR;
-        goto rtn;
-    }
-
-    printToLog(logF, ipAddress, "bind successful");
-
-   */
-
   rtn:
     funcExit(logF, ipAddress, "setUpTCP", rc);
     return rc;
@@ -298,7 +274,7 @@ int clientReceiveFunc()
         numOfBytesRec = 0;
         temp = NULL;
 
-        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress, &new_tcp, accept);
+        numOfBytesRec = recvTCP(tcp, recMsg, LONG_BUF_SZ);
         // Check if 0 bytes is received 
         if ( SUCCESS == numOfBytesRec )
         {
@@ -547,6 +523,8 @@ int createAndSendOpMsg()
         numOfBytesSent,
         opCodeInt;
 
+    struct sockaddr_in serverAddr;
+
     sprintf(logMsg, "Received Op Code is %s", opCode);
 
     if ( 0 == strcmp (opCode, "INSERT") )
@@ -568,6 +546,22 @@ int createAndSendOpMsg()
 
     printToLog(logF, ipAddress, "Message before create send");
     printToLog(logF, ipAddress, msgToSend);
+
+    memset(&serverAddr, 0, sizeof(struct sockaddr_in));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(atoi(serverPortNo));
+    serverAddr.sin_addr.s_addr = inet_addr(clientIpAddr);
+    memset(&(serverAddr.sin_zero), '\0', 8);
+
+    i_rc = connect(tcp, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+    if ( i_rc != SUCCESS )
+    {
+        strcpy(logMsg, "Cannot connect to server");
+        printToLog(logF, ipAddress, logMsg);
+        printf("\n%s\n", logMsg);
+        rc = ERROR;
+        goto rtn;
+    }
 
     switch(opCodeInt)
     {
@@ -596,7 +590,7 @@ int createAndSendOpMsg()
             }
             sprintf(logMsg, "port no: %d ip address %s", atoi(serverPortNo), clientIpAddr);
             printToLog(logF, ipAddress, logMsg);
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
+            numOfBytesSent = sendTCP(tcp, msgToSend, sizeof(msgToSend));
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -622,7 +616,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
+            numOfBytesSent = sendTCP(tcp, msgToSend, sizeof(msgToSend));
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -648,7 +642,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
+            numOfBytesSent = sendTCP(tcp, msgToSend, sizeof(msgToSend));
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -674,7 +668,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
+            numOfBytesSent = sendTCP(tcp, msgToSend, sizeof(msgToSend));
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");

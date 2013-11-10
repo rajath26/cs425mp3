@@ -916,109 +916,6 @@ int initialize_local_key_value_store()
 } // End of initialize_key_value_store()
 
 /****************************************************************
- * NAME: sendKVFunc 
- *
- * DESCRIPTION: THis is the function that is responsible for 
- *              i) accepting the action from the user on the key
- *              value store 
- *              ii) construct KV functionality op code
- *              iii) determine the host to route the request
- *              iv) create the message with KV op code
- *              v) send the message to the node
- *
- *              
- * PARAMETERS: NONE 
- *
- * RETURN:
- * (int) ZERO if success
- *       ERROR otherwise
- * 
- ****************************************************************/
-/*
-int sendKVFunc()
-{
-
-    funcEntry(logF, ipAddress, "sendKVFunc");
-
-    int rc = SUCCESS,           // Return code
-        i_rc,                   // Temp RC 
-        chosenKVFunc;           // KV functionality chosen
-
-    for (;;)
-    {
-        /////////
-        // Step i
-        /////////
-        // Accept the action from the user on the local key value 
-        // store
-        chosenKVFunc = displayKVFunctionalities();
-        if ( (chosenKVFunc != INSERT_KV) || (chosenKVFunc != LOOKUP_KV) || (chosenKVFunc != UPDATE_KV) || (chosenKVFunc != DELETE_KV) )
-        {
-             printToLog(logF, ipAddress, "Improper functionality chosen");
-             continue;
-	}
-
-	//////////
-	// Step ii
-	//////////
-	// Construct the KV functionality op code
-
-    }
-
-  rtn:
-    funcExit(logF, ipAddress, "sendKVFunc", rc);
-    return rc;
-
-} // End of sendKVFunc()
-*/
-
-/****************************************************************
- * NAME: displayKVFunctionalities 
- *
- * DESCRIPTION: This is the function that is responsible for 
- *              displaying the key value store functionalities 
- *              and accepting the input from the user 
- *              
- * PARAMETERS: NONE 
- *
- * RETURN:
- * (int) INSERT_KV if insert functionality chosen  
- *       LOOKUP_KV if lookup functionality chosen
- *       UPDATE_KV if update functionality chosen
- *       DELETE_KV if delete functionality chosen
- *       PRINT_KV  if print  functionality chosen
- * 
- ****************************************************************/
- /*
-int displayKVFunctionalities()
-{
-
-    funcEntry(logF, ipAddress, "displayKVFunctionalities");
-
-    int chosenKVFunc;            // Chosen KV functionality
-
-    printf("\n");
-    printf("\t\t**************************\n");
-    printf("\t\t**************************\n");
-    printf("\t\tWhat would you like to do?\n");
-    printf("\t\t**************************\n");
-    printf("\t\t**************************\n");
- 
-    printf("\n");
-    printf("\t\t1) INSERT\n");
-    printf("\t\t2) UPDATE\n");
-    printf("\t\t3) DELETE\n");
-    printf
-
-    
-  rtn:
-    funcExit(logF, ipAddress, "displayKVFuncionalities", chosenKVFunc);
-    return chosenKVFunc;
-
-} // End of displayKVFunctionalities()
-*/
-
-/****************************************************************
  * NAME: receiveKVFunc 
  *
  * DESCRIPTION: This is the function that is responsible for 
@@ -1050,20 +947,18 @@ int receiveKVFunc()
     funcEntry(logF, ipAddress, "receiveKVFunc");
 
     int rc = SUCCESS,                     // Return code
-        numOfBytesRec,                    // Number of bytes received
-	numOfBytesSent,                   // Number of bytes sent
-	i_rc,                             // Temp RC
-        index,                            // Hash index to host
-        portPN,                           // Hashed peer node port
-        resultOpCode = 0,                 // Result op codes
-        new_tcp,                          // new TCP sd returned by accept
-        accept = 1;
+        i_rc,
+        resultOpCode = 0,
+        numOfBytesRec,
+        index, 
+        numOfBytesSent;
 
-    char recMsg[LONG_BUF_SZ],             // Received message 
-         * lookupValue,                   // Lookup value buffer
-	 * retMsg,                        // Message to be returned to original requestor
-         ipAddrPN[SMALL_BUF_SZ];          // IP Address of hashed peer node
+    char recMsg[LONG_BUF_SZ],
+         * retMsg, 
+         * lookupValue;
 
+    socklen_t len;
+    
     struct sockaddr_in receivedFromAddr;  // Predecessor address  
 
     struct op_code *temp = NULL;          // KV OPCODE
@@ -1073,27 +968,32 @@ int receiveKVFunc()
     for(;;)
     {
 
-         printToLog(logF, "Before memset", "HERE");
-         // Set all to NULL
-	 memset(recMsg, '\0', LONG_BUF_SZ);
-	 lookupValue = NULL;
+         memset(recMsg, '\0', LONG_BUF_SZ);
          retMsg = NULL;
-         memset(ipAddrPN, '\0', SMALL_BUF_SZ);
-	 temp = NULL;
-         memset(&receivedFromAddr, 0, sizeof(struct sockaddr_in));
-	 numOfBytesRec = 0;
-         numOfBytesSent = 0;
+         lookupValue = NULL;
 
-         printToLog(logF, "After memset", "HERE");
+         int clientFd;
+
+         len = sizeof(receivedFromAddr);
+
+         clientFd = accept(tcp, (struct sockaddr *) &receivedFromAddr, &len);
+         if ( clientFd < 0 )
+         {
+             if ( EINTR == errno )
+             {
+                 printf("\nINterrpted system call??\n");
+                 continue;
+             }
+         }
 
 	 // Debug
-	 printToLog(logF, "recMsg before recvUDP", recMsg);
+	 printToLog(logF, "recMsg before recvTCP", recMsg);
 
          /////////
 	 // Step i
 	 /////////
 	 // Receive TCP message 
-	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, receivedFromAddr, &new_tcp, accept);
+	 numOfBytesRec = recvTCP(clientFd, recMsg, LONG_BUF_SZ);
 	 // Check if 0 bytes is received 
 	 if ( SUCCESS == numOfBytesRec )
 	 {
@@ -1215,7 +1115,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-			  numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+			  numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
 			  if ( SUCCESS == numOfBytesSent )
 			  {
                               printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1240,7 +1140,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-			 numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+			 numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
 	                 if ( SUCCESS == numOfBytesSent )
 		         {
 			     printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1270,7 +1170,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1295,7 +1195,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating DELETE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1325,7 +1225,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1348,7 +1248,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1380,7 +1280,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1405,7 +1305,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1451,13 +1351,69 @@ int receiveKVFunc()
 	 else 
 	 {
          
+             int peerSocket;
+
+             struct sockaddr_in peerNodeAddr;
+
+             char response[LONG_BUF_SZ];
+ 
              printToLog(logF, ipAddress, "Peer Node routing");
 
-             portPN = atoi(hb_table[index].port);
+             int portPN = atoi(hb_table[index].port);
+             char ipAddrPN[SMALL_BUF_SZ];
              strcpy(ipAddrPN, hb_table[index].IP);
 
+             sprintf(logMsg, "PEER PORT: %d", portPN);
+             printToLog(logF, "PEER PORT", logMsg);
+             printToLog(logF, "PEER IP", ipAddrPN);
+
+             // open a new socket
+             peerSocket = socket(AF_INET, SOCK_STREAM, 0);
+             if ( ERROR == peerSocket )
+             {
+                 printf("\nUnable to open socket\n");
+                 printf("\nError number: %d\n", errno);
+                 printf("\nExiting.... ... .. . . .\n");
+                 perror("socket");
+                 printToLog(logF, ipAddress, "TCP socket() failure");
+                 rc = ERROR;
+                 continue;
+             }
+
+             // connect to the peer node
+             memset(&peerNodeAddr, 0, sizeof(struct sockaddr_in));
+             peerNodeAddr.sin_family = AF_INET;
+             peerNodeAddr.sin_port = htons(portPN);
+             peerNodeAddr.sin_addr.s_addr = inet_addr(ipAddrPN);
+             memset(&(peerNodeAddr.sin_zero), '\0', 8);
+
+             i_rc = connect(peerSocket, (struct sockaddr *) &peerNodeAddr, sizeof(peerNodeAddr));
+             if ( SUCCESS != i_rc )
+             {
+                 strcpy(logMsg, "Cannot connect to server");
+                 printToLog(logF, ipAddress, logMsg);
+                 printf("\n%s\n", logMsg);
+                 continue;
+             }
+
              // Send the received message to the hashed peer node
-             numOfBytesSent = sendTCP(portPN, ipAddrPN, recMsg, tcp, 1);
+             numOfBytesSent = sendTCP(peerSocket, recMsg, LONG_BUF_SZ);
+             if ( SUCCESS == numOfBytesSent )
+             {
+                 printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                 continue;
+             }
+
+             // Get the response back from peer node 
+             numOfBytesRec = recvTCP(peerSocket, response, LONG_BUF_SZ);
+             if ( SUCCESS == numOfBytesRec )
+             {
+                 printToLog(logF, ipAddress, "ZERO BYTES RECEIVED");
+                 continue;
+             } 
+ 
+             // Send a message back to the local client
+             numOfBytesSent = sendTCP(clientFd, response, LONG_BUF_SZ);
              if ( SUCCESS == numOfBytesSent )
              {
                  printToLog(logF, ipAddress, "ZERO BYTES SENT");

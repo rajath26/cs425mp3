@@ -43,55 +43,14 @@
  * (int) bytes received 
  * 
  ****************************************************************/
-int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp, int acceptOrNot)
+int recvTCP(int sd, char * buffer, int length)
 {
 
     funcEntry(logF, ipAddress, "recvTCP");
 
     int numOfBytesRec;       // Number of bytes received
 
-    int new_tcp;             // New TCP returne by accept
-
-    socklen_t len;           // Length
-
-    len = sizeof(hostAddr);
-
-    /*
-    if (acceptOrNot)
-        listen(tcp, LISTEN_QUEUE_LENGTH);
-    */
-
-    if (acceptOrNot)
-    {
-        new_tcp = accept(tcp, (struct sockaddr *) &hostAddr, &len);
-        if ( new_tcp < SUCCESS )
-        {
-            strcpy(logMsg, "\nUNABLE TO ACCEPT NEW TCP\n");
-            printToLog(logF, ipAddress, logMsg);
-            printf("\n%s\n", logMsg);
-            numOfBytesRec = 0;
-            goto rtn;
-        }
-    }
-
-    printToLog(logF, ipAddress, "ACCEPT SUCCESSFUL IN RECV TCP");
-    printToLog(logF, ipAddress, "I AM HERE WAITING FOR RECVTCP ************************************");
-
-    if (acceptOrNot)
-        numOfBytesRec = recv(new_tcp, buffer, length, 0);
-    else
-        numOfBytesRec = recv(tcp, buffer, length, 0);
-    //network_to_host(buffer);
-
-    if (acceptOrNot)
-        *ret_tcp = new_tcp;
-    else
-        *ret_tcp = tcp;
-    if (acceptOrNot)
-    { 
-        sprintf(logMsg, "NEW TCP : %d", new_tcp);
-        printToLog(logF, ipAddress, logMsg);
-    }
+    numOfBytesRec = recv(sd, buffer, length, 0);
 
   rtn:
     funcExit(logF, ipAddress, "recvTCP", numOfBytesRec);
@@ -114,53 +73,15 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp,
  * (int) bytes sent 
  * 
  ****************************************************************/
-int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp, int connectOrNot)
+int sendTCP(int sd, char *buffer, int length)
 {
 
     funcEntry(logF, ipAddress, "sendUDP");
 
-    int numOfBytesSent=0;               // Number of bytes sent 
+    int numOfBytesSent;               // Number of bytes sent 
 
-    int sd;
-
-    struct sockaddr_in hostAddr;        // Address of host to send message
-
-    sprintf(logMsg, "port no : %d ip address : %s new TCP : %d connectOrNot : %d", portNo, ipAddr, new_tcp, connectOrNot);
-    printToLog(logF, ipAddress, logMsg);
-
-    if (connectOrNot)
-    {
-        sd = socket(AF_INET, SOCK_STREAM, 0);
-        if ( ERROR == tcp )
-        {
-            printf("\nUnable to open socket\n");
-            printf("\nError number: %d\n", errno);
-            printf("\nExiting.... ... .. . . .\n");
-            perror("socket");
-            numOfBytesSent = 0;
-        }
-       
-        memset(&hostAddr, 0, sizeof(struct sockaddr_in));
-        hostAddr.sin_family = AF_INET;
-        hostAddr.sin_port = htons(portNo);
-        hostAddr.sin_addr.s_addr = inet_addr(ipAddr);
-        memset(&(hostAddr.sin_zero), '\0', 8);
-
-        if ( connect( sd, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
-        {
-            strcpy(logMsg, "Cannot connect to server");
-            printToLog(logF, ipAddress, logMsg);
-            printf("\n%s\n", logMsg);
-            numOfBytesSent = 0;
-            goto rtn;
-        }
-    }
-
-    if (connectOrNot)
-        new_tcp = sd;
-               
     //host_to_network(buffer);
-    numOfBytesSent = send(new_tcp, buffer, strlen(buffer), 0);
+    numOfBytesSent = send(sd, buffer, strlen(buffer), 0);
 
 rtn:
     funcExit(logF, ipAddress, "sendTCP", numOfBytesSent);

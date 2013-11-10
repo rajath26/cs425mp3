@@ -37,6 +37,10 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
        //  int i = choose_host_hb_index(atoi((char*)key));
          char port[20];
          char IP[100];
+         char response[4096];
+         int sd;
+         int i_rc;
+         struct sockaddr_in peer;
          guint m = g_hash_table_size(key_value_store);
          char *message;
          if(m!=0){
@@ -46,9 +50,38 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
-               int numOfBytesSent = sendTCP(port, IP, message, tcp, 1);
+               int sd = socket(AF_INET, SOCK_STREAM, 0);
+               if ( -1 == sd )
+               {
+                    printf("\nUnable to open socket in prepare_system_for_leave\n");
+                    goto rtn;
+               }
+               memset(&peer, 0, sizeof(struct sockaddr_in));
+               peer.sin_family = AF_INET;
+               peer.sin_port = htons(atoi(port));
+               peer.sin_addr.s_addr = inet_addr(IP);
+               memset(&(peer.sin_zero), '\0', 8);
+               i_rc = connect(sd, (struct sockaddr *) &peer, sizeof(peer));
+               if ( i_rc != 0 )
+               {
+                   printf("\nCant connect to server in prepare_system_for_leave\n");
+                   goto rtn;
+               }
+               int numOfBytesSent = sendTCP(sd, message, sizeof(message));
+               if ( 0 == numOfBytesSent )
+               {
+                   printf("\nZERO BYTES SENT IN prepare_system_for_leave\n");
+                   goto rtn;
+               }
+               int numOfBytesRec = recvTCP(sd, response, 4096);
+               if ( 0 == numOfBytesRec )
+               {
+                   printf("\nZERO BYTES RECEIVED IN prepare_system_for_leave\n");
+                   goto rtn;
+               }
                delete_key_value_from_store(atoi((char *)key));
          }
+      rtn:
          funcExit(logF,NULL,"prepare_system_for_leave",0);
 }
 
@@ -106,6 +139,8 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          char IP[100];
          char message=0x0;
          char recMsg[4096];
+         char response[4096];
+         struct sockaddr_in peer;
          //struct sockaddr_in address;
          struct op_code *temp = NULL;
          strcpy(port,hb_table[i].port);
@@ -119,15 +154,40 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
              create_message_INSERT((char *)key,(char *)value,&message);
              append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);         
              //sendKV:
-             int  numOfBytesSent = sendTCP(port, IP, message, tcp, 1);
-             if ( 0 == numOfBytesSent )
-             {
-                printToLog(logF, IP, "ZERO BYTES SENT");
-                //goto sendKV;
-             }
+               int sd = socket(AF_INET, SOCK_STREAM, 0);
+               if ( -1 == sd )
+               {
+                    printf("\nUnable to open socket in prepare_system_for_leave\n");
+                    goto rtn;
+               }
+               memset(&peer, 0, sizeof(struct sockaddr_in));
+               peer.sin_family = AF_INET;
+               peer.sin_port = htons(atoi(port));
+               peer.sin_addr.s_addr = inet_addr(IP);
+               memset(&(peer.sin_zero), '\0', 8);
+               i_rc = connect(sd, (struct sockaddr *) &peer, sizeof(peer));
+               if ( i_rc != 0 )
+               {
+                   printf("\nCant connect to server in prepare_system_for_leave\n");
+                   goto rtn;
+               }
+               int numOfBytesSent = sendTCP(sd, message, sizeof(message));
+               if ( 0 == numOfBytesSent )
+               {
+                   printf("\nZERO BYTES SENT IN prepare_system_for_leave\n");
+                   goto rtn;
+               }
+               int numOfBytesRec = recvTCP(sd, response, 4096);
+               if ( 0 == numOfBytesRec )
+               {
+                   printf("\nZERO BYTES RECEIVED IN prepare_system_for_leave\n");
+                   goto rtn;
+               }
             delete_key_value_from_store(atoi((char *)key));
            //funcExit(logF,NULL,"process_key_value",0);
          }
+
+       rtn:
         funcExit(logF,NULL,"process_key_value",0);
 }
 void reorganize_key_value_store(){
