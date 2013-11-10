@@ -49,6 +49,8 @@
 int KVClient_CLA_check(int argc, char *argv[])
 {
 
+    funcEntry(logF, ipAddress, "KVClient_CLA_check");
+
     int rc = SUCCESS;
 
     if ( argc != CLIENT_NUM_OF_CL_ARGS )
@@ -67,6 +69,7 @@ int KVClient_CLA_check(int argc, char *argv[])
     }
 
   rtn:
+    funcExit(logF, ipAddress, "KVClient_CLA_check", rc);
     return rc;
 
 } // End of KVClient_CLA_check()
@@ -89,6 +92,8 @@ int KVClient_CLA_check(int argc, char *argv[])
 int setUpTCP(char * portNo, char * ipAddress)
 {
 
+    funcEntry(logF, ipAddress, "setUpTCP");
+
     int rc = SUCCESS,
         i_rc;
 
@@ -101,6 +106,8 @@ int setUpTCP(char * portNo, char * ipAddress)
         perror("socket");
         rc = ERROR;
     }
+
+    printToLog(logF, ipAddress, "socket sucessful");
 
     memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
     KVClientAddr.sin_family = AF_INET;
@@ -120,9 +127,12 @@ int setUpTCP(char * portNo, char * ipAddress)
         goto rtn;
     }
 
+    printToLog(logF, ipAddress, "bind successful");
+
     listen(tcp, LISTEN_QUEUE_LENGTH);
 
   rtn:
+    funcExit(logF, ipAddress, "setUpTCP", rc);
     return rc;
 
 } // End of setUpTCP()
@@ -141,6 +151,8 @@ int setUpTCP(char * portNo, char * ipAddress)
  ****************************************************************/
 int spawnHelperThreads()
 {
+
+    funcEntry(logF, ipAddress, "spawnHelperThreads");
 
     int rc = SUCCESS,                    // Return code
         i_rc,                            // Temp RC
@@ -168,6 +180,8 @@ int spawnHelperThreads()
             rc = ERROR;
             goto rtn;
         }
+        sprintf(logMsg, "pthread successful with %d counter", *ptr[counter]);
+        printToLog(logF, ipAddress, logMsg);
     }
 
     for ( counter = 0; counter < NUM_OF_THREADS; counter++ )
@@ -204,6 +218,9 @@ void * startKelsa(void *threadNum)
     //counter = (int *) malloc(sizeof(int));
     counter = (int *) threadNum;
 
+    sprintf(logMsg, "Counter: %d", *counter);
+    printToLog(logF, ipAddress, logMsg);
+
     pthread_t tid = pthread_self();   // Thread ID
 
     switch(*counter)
@@ -211,12 +228,14 @@ void * startKelsa(void *threadNum)
         case 0:
         // First thread displays KV functionalities
         // and sends request to local server
+        printToLog(logF, ipAddress, "In clientSender switch case");
         i_rc = clientSenderFunc();
         break;
 
         case 1:
         // Second thread receives response from servers
         // and prints them
+        printToLog(logF, ipAddress, "In client receiver switch case");
         i_rc = clientReceiveFunc();
         break;
 
@@ -224,6 +243,8 @@ void * startKelsa(void *threadNum)
         printf("\nDefault CASE. An ERROR\n");
         break;
     }
+
+    funcExit(logF, ipAddress, "startKelsa", 0);
 
 } // End of startKelsa()
 
@@ -245,6 +266,8 @@ void * startKelsa(void *threadNum)
  ****************************************************************/
 int clientReceiveFunc()
 {
+
+    funcEntry(logF, ipAddress, "clientReceiverFunc");
 
     int rc = SUCCESS,
         numOfBytesRec,
@@ -326,6 +349,7 @@ int clientReceiveFunc()
         } // End of switch( temp->opcode )
 
   rtn:
+    funcExit(logF, ipAddress, "clientReceiverFunc", rc);
     return rc;
 
 } // End of clientReceiveFunc()
@@ -349,6 +373,8 @@ int clientReceiveFunc()
 int clientSenderFunc()
 {
 
+    funcEntry(logF, ipAddress, "clientSenderFunc");
+
     int rc = SUCCESS,
         i_rc;
 
@@ -371,6 +397,7 @@ int clientSenderFunc()
     }
 
   rtn:
+    funcExit(logF, ipAddress, "clientSendFunc", rc);
     return rc;
 
 } // End of clientSenderFunc()
@@ -398,6 +425,8 @@ int clientSenderFunc()
  ****************************************************************/
 int parseKVClientCmd()
 {
+
+    funcEntry(logF, ipAddress, "parseKVClientCmd");
 
     int rc = ERROR;
 
@@ -470,6 +499,7 @@ int parseKVClientCmd()
   rtn:
     if (invalidOpCode)
         printf("\nINVALID OP CODE. TRY AGAIN!!!");
+    funcExit(logF, ipAddress, "parseKVClientCmd", rc);
     return rc;
    
 } // End of parseKVClientCmd()
@@ -491,10 +521,14 @@ int parseKVClientCmd()
 int createAndSendOpMsg()
 {
 
+    funcEntry(logF, ipAddress, "createAndSendOpMsg");
+
     int rc = SUCCESS,
         i_rc,
         numOfBytesSent,
         opCodeInt;
+
+    sprintf(logMsg, "Received Op Code is %s", opCode);
 
     if ( 0 == strcmp (opCode, "INSERT") )
         opCodeInt = INSERT_KV;
@@ -513,12 +547,17 @@ int createAndSendOpMsg()
 
     msgToSend = NULL;
 
+    printToLog(logF, ipAddress, "Message before create send");
+    printToLog(logF, ipAddress, msgToSend);
+
     switch(opCodeInt)
     {
 
         case INSERT_KV:
 
             i_rc = create_message_INSERT(atoi(key), value, &msgToSend);
+            printToLog(logF, ipAddress, "Message returned by create_message_INSERT");
+            printToLog(logF, ipAddress, msgToSend);
             if ( ERROR == i_rc )
             {
                 printf("\nUnable to create insert message\n");
@@ -526,12 +565,16 @@ int createAndSendOpMsg()
                 goto rtn;
             }
             i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
+            printToLog(logF, ipAddress, "Message returned by append");
+            printToLog(logF, ipAddress, msgToSend);
             if ( ERROR == i_rc )
             {
                 printf("\nUnable to create insert message\n");
                 rc = ERROR;
                 goto rtn;
             }
+            sprintf(logMsg, "port no: %d ip address %s", atoi(serverPortNo), clientIpAddr);
+            printToLog(logF, ipAddress, logMsg);
             numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
             if ( SUCCESS == numOfBytesSent )
             {
@@ -631,6 +674,7 @@ int createAndSendOpMsg()
     } // End of switch(opCode)
 
   rtn:
+    funcExit(logF, ipAddress, "createAndSendOpMsg", rc);
     return rc;
 
 } // End of createAndSendOpMsg()
