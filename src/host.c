@@ -1074,7 +1074,7 @@ int receiveKVFunc()
          printToLog(logF, "Before memset", "HERE");
          // Set all to NULL
 	 memset(recMsg, '\0', LONG_BUF_SZ);
-	 memset(lookupValue, '\0', LONG_BUF_SZ);
+	 lookupValue = NULL;
          retMsg = NULL;
          memset(ipAddrPN, '\0', SMALL_BUF_SZ);
 	 temp = NULL;
