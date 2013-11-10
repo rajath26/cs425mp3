@@ -1114,8 +1114,8 @@ int receiveKVFunc()
          // Original requestor information will be stored in 
 	 // temp op_code members port and ipAddr 
 	 // predecessor address will be in receivedFromAddr
-         sprintf(logMsg, "Original Requestor Port No: %s, IP Address: %s", temp->port, temp->IP);
-         printToLog(logF, ipAddress, logMsg);
+         //sprintf(logMsg, "Original Requestor Port No: %s, IP Address: %s", temp->port, temp->IP);
+         //printToLog(logF, ipAddress, logMsg);
 
 	 ///////////
 	 // Step iii
