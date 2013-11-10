@@ -90,10 +90,12 @@ int choose_host_hb_index(int key)
            goto done;
     }
     // if hash_value is greater than the last element return the first value
+    /* 
     if(hash_value > ptr[MAX_HOSTS-1]){
            result = ptr[0];
            goto done;
     }
+    */
     // if hash_value is in between the element list 
     int flag=0;
     for(i=0;i<MAX_HOSTS-1;i++){
@@ -106,8 +108,9 @@ int choose_host_hb_index(int key)
             }
     }	 
 
-   done : 
-   if (flag==0) return host_no;
+   if (flag==0) return ptr[0];
+
+   done:
    
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){
