@@ -88,6 +88,7 @@ int choose_host_hb_index(int key)
     // if only one member is present
     if(ptr[1]==0){
            result = ptr[0];
+           printToLog(logF, "GOD DAMN IT", "I AM DONE");
            goto done;
     }
     // if hash_value is less than first element in the sorted list
@@ -118,7 +119,7 @@ int choose_host_hb_index(int key)
    if (flag==0) return ptr[0];
 
    done:
-   
+   printToLog(logF, "I am in DONE", "SO I AM DONE");
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){
           if(atoi(hb_table[i].host_id)==result){
