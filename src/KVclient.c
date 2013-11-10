@@ -111,7 +111,7 @@ int setUpTCP(char * portNo, char * ipAddress)
 
 
     
-
+/*
     memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
     KVClientAddr.sin_family = AF_INET;
     KVClientAddr.sin_port = htons(atoi(portNo));
@@ -133,7 +133,7 @@ int setUpTCP(char * portNo, char * ipAddress)
     printToLog(logF, ipAddress, "bind successful");
 
     listen(tcp, LISTEN_QUEUE_LENGTH);
-
+*/
    
 
   rtn:
@@ -284,6 +284,28 @@ int clientReceiveFunc()
     struct sockaddr_in serverAddress;
 
     struct op_code *temp = NULL;
+
+    memset(&KVClientAddr, 0, sizeof(struct sockaddr_in));
+    KVClientAddr.sin_family = AF_INET;
+    KVClientAddr.sin_port = htons(atoi(clientPortNo));
+    KVClientAddr.sin_addr.s_addr = inet_addr(ipAddress);
+    memset(&(KVClientAddr.sin_zero), '\0', 8);
+
+    i_rc = bind(tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr));
+    if ( ERROR == i_rc )
+    {
+        printf("\nUnable to bind TCP socket\n");
+        printf("\nError number: %d\n", errno);
+        printf("\nExiting.... ... .. . . .\n");
+        perror("bind");
+        printToLog(logF, ipAddress, "TCP bind() failure");
+        rc = ERROR;
+        goto rtn;
+    }
+
+    printToLog(logF, ipAddress, "bind successful");
+
+    listen(tcp, LISTEN_QUEUE_LENGTH);
 
     // The design is to execute client each time for each operation
 
