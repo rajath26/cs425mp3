@@ -291,8 +291,8 @@ int clientReceiveFunc()
     KVClientAddr.sin_addr.s_addr = inet_addr(ipAddress);
     memset(&(KVClientAddr.sin_zero), '\0', 8);
 
-    i_rc = bind(tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr));
-    if ( ERROR == i_rc )
+    if (bind(tcp, (struct sockaddr *) &KVClientAddr, sizeof(KVClientAddr)) < 0)
+    //if ( ERROR == i_rc )
     {
         printf("\nUnable to bind TCP socket\n");
         printf("\nError number: %d\n", errno);
