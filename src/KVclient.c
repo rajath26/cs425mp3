@@ -307,6 +307,8 @@ int clientReceiveFunc()
             goto rtn; 
         }
 
+        printToLog(logF, "RECEIVED MESSAGE IS", recMsg);
+
         i_rc = extract_message_op(recMsg, &temp);
         if ( ERROR == i_rc )
         {
@@ -314,6 +316,9 @@ int clientReceiveFunc()
             rc = ERROR;
             goto rtn; 
         }
+
+        sprintf(logMsg, "RECEIVED OP CODE : %d", temp->opcode);
+        printToLog(logF, "REceived OP CODE", logMsg); 
 
         switch( temp->opcode )
         { 
