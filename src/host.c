@@ -1360,6 +1360,7 @@ int receiveKVFunc()
 		 case LOOKUP_KV:
                      // Lookup on the local key value store
 	             lookupValue = lookup_store_for_key(temp->key);
+                     printToLog(logF, "LOOKUP RETURN STRING", lookupValue);
         
                      // If an error send an error message to the original
                      // requestor
@@ -1390,6 +1391,7 @@ int receiveKVFunc()
                      // requestor
 		     else
 		     {
+                         strcpy(temp->value, lookupValue);
 		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
                          i_rc = create_message_LOOKUP_RESULT(temp->key, temp->value, &retMsg);
