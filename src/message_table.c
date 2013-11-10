@@ -72,9 +72,13 @@ int choose_host_hb_index(int key)
     int result;
     int i;
     char buffer[20];
+    printToLog(logF, "KEY************", key);
     sprintf(buffer,"%d",key);
+    printToLog(logF, "before g_str_hash", "hi");
     int hash_value = g_str_hash(buffer) % 360;
+    printToLog(logF, "after g_str_hash", "hi");
     int *ptr= (int *)member_list;
+    printToLog(logF, "I am here", "Hmmm");
     // impossible case, expect atleast one element to be present
     if(ptr[0]==0){
            return -1;
