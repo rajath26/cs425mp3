@@ -124,18 +124,6 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
                 printToLog(logF, IP, "ZERO BYTES SENT");
                 //goto sendKV;
              }
-           // recvTCP(recMsg, 4096, &address);
-          //  i_rc = extract_messsage_op(recMsg, &temp);
-             if ( -1 == i_rc )
-             {
-                printToLog(logF, IP, "extract_message_op failed");
-                return;
-             }
-             if ( temp->opcode != 6 )
-             {
-                printToLog(logF, IP, "Insertion failed. Retry send");
-                goto sendKV;
-            }
             delete_key_value_from_store(atoi((char *)key));
            //funcExit(logF,NULL,"process_key_value",0);
          }
