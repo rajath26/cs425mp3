@@ -53,12 +53,14 @@ extern char portNo[SMALL_BUF_SIZE];
 int recvTCP(
             char *buffer,        // Buffer to be received  
             int length,          // Length of buffer 
-            struct sockaddr_in   // Struct holding address
+            struct sockaddr_in,  // Struct holding address
+            int *new_tcp
            );
 int sendTCP(
             int portNo,          // Port No
             char * ipAddr,       // IP Address, 
-            char * buffer        // Buffer to be sent
+            char * buffer,       // Buffer to be sent
+            int new_tcp
            );
 
 /*

@@ -45,7 +45,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                append_port_ip_to_message(port,IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
-               int numOfBytesSent = sendTCP(port, IP, message);
+               int numOfBytesSent = sendTCP(port, IP, message, tcp);
                delete_key_value_from_store(atoi((char *)key));
          }
          funcExit(logF,NULL,"prepare_system_for_leave",0);
@@ -118,7 +118,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
              create_message_INSERT((char *)key,(char *)value,&message);
              append_port_ip_to_message(port,IP,message);         
              //sendKV:
-             int  numOfBytesSent = sendTCP(port, IP, message);
+             int  numOfBytesSent = sendTCP(port, IP, message, tcp);
              if ( 0 == numOfBytesSent )
              {
                 printToLog(logF, IP, "ZERO BYTES SENT");

@@ -35,12 +35,14 @@
  * (int) length - max length of buffer received 
  * (struct sockaddr_in) hostAddr - struct holding address of 
  *                                 host buffer received from
+ * (int *) ret_tcp - pass by reference new socket descriptor
+                     returned by accept
  *
  * RETURN:
  * (int) bytes received 
  * 
  ****************************************************************/
-int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr)
+int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp)
 {
 
     funcEntry(logF, ipAddress, "recvTCP");
@@ -69,6 +71,10 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr)
     numOfBytesRec = recv(new_tcp, buffer, length, 0);
     //network_to_host(buffer);
 
+    *ret_tcp = new_tcp;
+    sprintf(logMsg, "NEW TCP : %d", new_tcp);
+    printToLog(logF, ipAddress, logMsg);
+
   rtn:
     funcExit(logF, ipAddress, "recvTCP", numOfBytesRec);
     return numOfBytesRec;
@@ -84,12 +90,13 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr)
  * (int) portNo - port no
  * (char *) ipAddr - IP 
  * (char *) buffer - buffer to be sent 
+ * (int) new_tcp - new TCP sd returned by accept
  * 
  * RETURN:
  * (int) bytes sent 
  * 
  ****************************************************************/
-int sendTCP(int portNo, char * ipAddr, char * buffer)
+int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp)
 {
 
     funcEntry(logF, ipAddress, "sendUDP");
@@ -98,7 +105,7 @@ int sendTCP(int portNo, char * ipAddr, char * buffer)
 
     struct sockaddr_in hostAddr;        // Address of host to send message
 
-    sprintf(logMsg, "port no : %d ip address : %s", portNo, ipAddr);
+    sprintf(logMsg, "port no : %d ip address : %s new TCP : %d", portNo, ipAddr, new_tcp);
     printToLog(logF, ipAddress, logMsg);
 
     memset(&hostAddr, 0, sizeof(struct sockaddr_in));
@@ -107,7 +114,7 @@ int sendTCP(int portNo, char * ipAddr, char * buffer)
     hostAddr.sin_addr.s_addr = inet_addr(ipAddr);
     memset(&(hostAddr.sin_zero), '\0', 8);
 
-    if ( connect( tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
+    if ( connect( new_tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
     {
         strcpy(logMsg, "Cannot connect to server");
         printToLog(logF, ipAddress, logMsg);
@@ -117,7 +124,7 @@ int sendTCP(int portNo, char * ipAddr, char * buffer)
     }
                
     //host_to_network(buffer);
-    numOfBytesSent = send(tcp, buffer, strlen(buffer), 0);
+    numOfBytesSent = send(new_tcp, buffer, strlen(buffer), 0);
 
 rtn:
     funcExit(logF, ipAddress, "sendTCP", numOfBytesSent);

@@ -276,7 +276,8 @@ int clientReceiveFunc()
 
     int rc = SUCCESS,
         numOfBytesRec,
-        i_rc;
+        i_rc,
+        new_tcp;
 
     char recMsg[LONG_BUF_SZ];
 
@@ -291,7 +292,7 @@ int clientReceiveFunc()
         numOfBytesRec = 0;
         temp = NULL;
 
-        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress);
+        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress, &new_tcp);
         // Check if 0 bytes is received 
         if ( SUCCESS == numOfBytesRec )
         {
@@ -582,7 +583,7 @@ int createAndSendOpMsg()
             }
             sprintf(logMsg, "port no: %d ip address %s", atoi(serverPortNo), clientIpAddr);
             printToLog(logF, ipAddress, logMsg);
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -608,7 +609,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -634,7 +635,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -660,7 +661,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
