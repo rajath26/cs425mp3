@@ -3,7 +3,7 @@
 #include<string.h>
 #include<glib.h>
 #include"message_table.c"
-//#include"../inc/tcp.h"
+#include"tcp.c"
 #include <sys/types.h>
 #include <sys/socket.h>
 //#include <netinet/in.h>
@@ -63,6 +63,35 @@ void print_key_value(gpointer key,gpointer value, gpointer dummy){
          pthread_mutex_unlock(&key_value_mutex);
          funcExit(logF,NULL,"print_key_value",0);
 }
+
+void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
+         funcEntry(logF,NULL,"preare_system_for_leave");
+       //  int i = choose_host_hb_index(atoi((char*)key));
+         char port[20];
+         char IP[100];
+         guint m = g_hash_table_size(key_value_store);
+         char *message;
+         if(m!=0){
+               int i = choose_host_hb_index(atoi((char*)key));
+               create_message_INSERT((char *)key,(char *)value,&message);
+               append_port_ip_to_message(port,IP,message);
+               strcpy(port,hb_table[i].port);
+               strcpy(IP,hb_table[i].IP);
+               int numOfBytesSent = sendTCP(port, IP, message);
+               delete_key_value_from_store(atoi((char *)key));
+         }
+         funcExit(logF,NULL,"prepare_system_for_leave",0);
+}
+
+void prepareNodeForSystemLeave(){
+         funcEntry(logF,NULL,"preareNodeForSystemLeave");
+         hb_table[host_no].valid = 0;
+         hb_table[host_no].status = 0;
+         update_host_list();
+         g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
+         funcExit(logF,NULL,"prepareNodeForSystemLeave",0);
+}   
+
 
 void process_key_value(gpointer key,gpointer value, gpointer dummy){
 	 funcEntry(logF,NULL,"process_key_value");
