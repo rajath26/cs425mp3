@@ -13,7 +13,8 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <signal.h>
-
+// Include only for KVClient
+//#include "logger.c"
 
 struct op_code{
              int opcode;

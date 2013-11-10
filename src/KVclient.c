@@ -18,8 +18,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "../inc/KVclient.h"
-#include "key_value_store.c"
+//#include "key_value_store.c"
 #include "tcp.c"
+//#include "../inc/logger.h"
 
 /* 
  * Function defintions
@@ -673,6 +674,19 @@ int main(int argc, char *argv[])
     printf("\t\t***************************************\n");
     printf("\t\t***************************************\n");
     printf("\n");
+
+    /*
+     * Init log file
+     */
+    i_rc = logFileCreate(CLIENT_LOG);
+    if ( i_rc != SUCCESS )
+    {
+        printf("\nLog file creation error\n");
+        rc = ERROR;
+        goto rtn;
+    }
+
+    funcEntry(logF, "I am starting", "KVclient::main");
 
     /*
      * Commannd line arguments check 
