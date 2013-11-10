@@ -97,6 +97,7 @@ int choose_host_hb_index(int key)
     }
     */
     // if hash_value is in between the element list 
+    printToLog(logF, "I AM HERE", "HELLO");
     int flag=0;
     for(i=0;i<MAX_HOSTS-1;i++){
          if(hash_value==ptr[i]){ result = ptr[i]; goto done;}
