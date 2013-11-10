@@ -68,6 +68,7 @@ char opCode[SMALL_BUF_SZ];
 char key[SMALL_BUF_SZ];
 char value[LONG_BUF_SZ];
 char * msgToSend;
+char ipAddress[SMALL_BUF_SZ];
 struct sockaddr_in KVClientAddr;
 
 /*

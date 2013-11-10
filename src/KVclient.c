@@ -251,7 +251,7 @@ int clientReceiveFunc()
 
     char recMsg[LONG_BUF_SZ];
 
-    struct sockaddr_in serverAddress();
+    struct sockaddr_in serverAddress;
 
     struct op_code *temp = NULL;
 
@@ -262,7 +262,7 @@ int clientReceiveFunc()
         numOfBytesRec = 0;
         temp = NULL;
 
-        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &serverAddress);
+        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress);
         // Check if 0 bytes is received 
         if ( SUCCESS == numOfBytesRec )
         {
@@ -287,7 +287,6 @@ int clientReceiveFunc()
                 printf("\t\tSUCCESSFUL LOOKUP\n");
                 printf("\t\tKEY: %d - VALUE: %s\n", temp->key, temp->value);
                 printf("\t\t****************\n");
-                continue;
             break;
 
             case INSERT_RESULT:
@@ -295,7 +294,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL INSERT\n");
                 printf("\t\t****************\n");
-                continue;
             break;
  
             case DELETE_RESULT:
@@ -303,7 +301,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL DELETE\n");
                 printf("\t\t****************\n");
-                continue;
             break;
 
             case UPDATE_RESULT:
@@ -311,8 +308,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL UPDATE\n");
                 printf("\t\t****************\n");
-                continue;
- 
             break;
 
             case ERROR_RESULT:
@@ -320,7 +315,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tERROR DURING OPERATION. TRY AGAIN\n");
                 printf("\t\t****************\n");
-                continue;
             break;
 
             default:
@@ -498,14 +492,30 @@ int createAndSendOpMsg()
 
     int rc = SUCCESS,
         i_rc,
-        numOfBytesSent;
+        numOfBytesSent,
+        opCodeInt;
+
+    if ( 0 == strcmp (opCode, "INSERT") )
+        opCodeInt = INSERT_KV;
+    else if ( 0 == strcmp (opCode, "LOOKUP") )
+        opCodeInt = LOOKUP_KV;
+    else if ( 0 == strcmp (opCode, "DELETE") )
+        opCodeInt = DELETE_KV;
+    else if ( 0 == strcmp (opCode, "UPDATE") )
+        opCodeInt = UPDATE_KV;
+    else 
+    {
+        printf("\nInvalid OP CODE\n");
+        rc = ERROR;
+        goto rtn;
+    }
 
     msgToSend = NULL;
 
-    switch(opCode)
+    switch(opCodeInt)
     {
 
-        case "INSERT":
+        case INSERT_KV:
 
             i_rc = create_message_INSERT(atoi(key), value, &msgToSend);
             if ( ERROR == i_rc )
@@ -531,7 +541,7 @@ int createAndSendOpMsg()
   
         break;
 
-        case "LOOKUP":
+        case LOOKUP_KV:
            
             i_rc = create_message_LOOKUP(atoi(key), &msgToSend);
             if ( ERROR == i_rc )
@@ -557,7 +567,7 @@ int createAndSendOpMsg()
 
         break;
 
-        case "UPDATE":
+        case UPDATE_KV:
    
             i_rc = create_message_UPDATE(atoi(key), value, &msgToSend);
             if ( ERROR == i_rc )
@@ -583,7 +593,7 @@ int createAndSendOpMsg()
  
         break;
 
-        case "DELETE":
+        case DELETE_KV:
 
             i_rc = create_message_DELETE(atoi(key), &msgToSend);
             if ( ERROR == i_rc )
@@ -685,6 +695,8 @@ int main(int argc, char *argv[])
     strcpy(serverPortNo, argv[3]);
     memset(KVclientCmd, '\0', LONG_BUF_SZ);
     strcpy(KVclientCmd, argv[4]);
+
+    strcpy(ipAddress, clientIpAddr);
 
     /*
      * Set up TCP 

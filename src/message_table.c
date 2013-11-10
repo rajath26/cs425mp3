@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<glib.h>
-#include"logger.c"
+//#include"logger.c"
 #include"../inc/message.h"
 /////////////////////////////////////////////////////////////////////////////////////
 //                FILE NAME : message_table.c                                      //

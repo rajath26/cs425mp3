@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "../inc/host.h"
-//#include "logger.c"
+#include "logger.c"
 #include "udp.c"
 #include "message_table.c"
 #include "key_value_store.c"
@@ -119,7 +119,7 @@ int setUpPorts(char * portNo, char * ipAddress)
         printf("\nError number: %d\n", errno);
         printf("\nExiting.... ... .. . . .\n");
         perror("socket");
-        printToLog(logF, ipAddres, "TCP socket() failure");
+        printToLog(logF, ipAddress, "TCP socket() failure");
         rc = ERROR;
     }
 
@@ -486,14 +486,13 @@ void * startKelsa(void *threadNum)
         default:
         // Can't get here if we do then exit
         printToLog(logF, ipAddress, "default case. An error");
-        rc = ERROR;
         goto rtn;
         break;
     } // End of switch
 
   rtn:
     funcExit(logF, ipAddress, "startKelsa", rc);
-    return rc;
+
 } // End of startKelsa()
 
 /****************************************************************
@@ -856,9 +855,11 @@ void leaveSystem(int signNum)
 
     funcEntry(logF, "Leaving Daisy Distributed System", "leaveSystem");
 
+    int i_rc;
+
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
-    i_rc = prepareNodeForSystemLeave()
+    i_rc = prepareNodeForSystemLeave();
     if ( ERROR == i_rc )
     {
          sprintf(logMsg, "Unable to prepare the node with IP address %s and host no %d", ipAddress, host_no);
@@ -875,7 +876,7 @@ void leaveSystem(int signNum)
 } // End of leaveSystem()
 
 /****************************************************************
- * NAME: initialize_key_value_store 
+ * NAME: initialize_local_key_value_store 
  *
  * DESCRIPTION: This is the function that initializes the local
  *              key-value store
@@ -887,7 +888,7 @@ void leaveSystem(int signNum)
  *       ERROR otherwise
  * 
  ****************************************************************/
-int initialize_key_value_store()
+int initialize_local_key_value_store()
 {
 
     funcEntry(logF, ipAddress, "initialize_key_value_store");
@@ -896,7 +897,7 @@ int initialize_key_value_store()
         i_rc;                // Temp RC
 
     // Create the hash table that stores the local key value store
-    i_rc = create_hash_table()
+    i_rc = create_hash_table();
     if ( i_rc != SUCCESS )
     {
          sprintf(logMsg, "\nUnable to create local key value store at IP address %s and host no %d\n", ipAddress, host_no);
@@ -1073,7 +1074,7 @@ int receiveKVFunc()
          retMsg = NULL;
          memset(ipAddrPN, '\0', SMALL_BUF_SZ);
 	 temp = NULL;
-         memset(&receivedFromAddr, 0, sizeof(struct sockadddr_in));
+         memset(&receivedFromAddr, 0, sizeof(struct sockaddr_in));
 	 numOfBytesRec = 0;
          numOfBytesSent = 0;
 
@@ -1084,7 +1085,7 @@ int receiveKVFunc()
 	 // Step i
 	 /////////
 	 // Receive TCP message 
-	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &receivedFromAddr);
+	 numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, receivedFromAddr);
 	 // Check if 0 bytes is received 
 	 if ( SUCCESS == numOfBytesRec )
 	 {
@@ -1107,7 +1108,7 @@ int receiveKVFunc()
          // Original requestor information will be stored in 
 	 // temp op_code members port and ipAddr 
 	 // predecessor address will be in receivedFromAddr
-         sprintf(logMsg, "Original Requestor Port No: %d, IP Address: %s", temp->port, temp->IP);
+         sprintf(logMsg, "Original Requestor Port No: %s, IP Address: %s", temp->port, temp->IP);
          printToLog(logF, ipAddress, logMsg);
 
 	 ///////////
@@ -1144,14 +1145,14 @@ int receiveKVFunc()
          if (!resultOpCode)
          {
 	     index = choose_host_hb_index(temp->key);
-	     if ( ERROR == hash_index )
+	     if ( ERROR == index )
 	     {
                  sprintf(logMsg, "Unable to choose host to route the request. Return code of choose_host_hb_index() = %d", i_rc);
 	         printToLog(logF, ipAddress, logMsg);
 	         continue;
 	     }
 
-             sprintf(logMsg, "Hash index : %d", hash_index); 
+             sprintf(logMsg, "index : %d", index); 
              printToLog(logF, ipAddress, logMsg);
          }
 
@@ -1186,7 +1187,7 @@ int receiveKVFunc()
 		     {
                           sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			  printToLog(logF, ipAddress, logMsg);
-			  i_rc = create_message_ERROR(temp, &retMsg);
+			  i_rc = create_message_ERROR(&retMsg);
 			  if ( ERROR == i_rc )
 			  {
 			      printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1198,7 +1199,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-			  numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+			  numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
 			  if ( SUCCESS == numOfBytesSent )
 			  {
                               printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1223,7 +1224,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-			 numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+			 numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
 	                 if ( SUCCESS == numOfBytesSent )
 		         {
 			     printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1234,14 +1235,14 @@ int receiveKVFunc()
 
 		 case DELETE_KV:
                      // Delete the KV pair in to the KV store
-                     i_rc = delete_key_value_store_from_store(temp->key);
+                     i_rc = delete_key_value_from_store(temp->key);
                      // If error send an error message to the original 
                      // requestor
 		     if ( ERROR == i_rc )
 		     {
 		         sprintf(logMsg, "There was an ERROR while DELETING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(temp, &retMsg);
+                         i_rc = create_message_ERROR(&retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1253,7 +1254,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1278,7 +1279,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating DELETE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1296,7 +1297,7 @@ int receiveKVFunc()
 		     {
                          sprintf(logMsg, "There was an ERROR while UPDATING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(temp, &retMsg);
+                         i_rc = create_message_ERROR(&retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1308,7 +1309,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1331,7 +1332,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1350,7 +1351,7 @@ int receiveKVFunc()
 		     {
 		         sprintf(logMsg, "There was an ERROR during LOOKUP of %d = %s KV pair in the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(temp, &retMsg);
+                         i_rc = create_message_ERROR(&retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1362,7 +1363,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1387,7 +1388,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(temp->port, temp->ipAddr, retMsg);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1478,7 +1479,8 @@ int localKVReorderFunc()
 
     funcEntry(logF, ipAddress, "localKVReorderFunc");
 
-    int rc = SUCCESS;
+    int rc = SUCCESS,
+        i_rc;
 
     while(1)
     {
@@ -1491,7 +1493,8 @@ int localKVReorderFunc()
 
         if (reOrderTrigger) 
         {
-            i_rc = reorganize_key_value_store();
+            reorganize_key_value_store();
+            /*
             if ( ERROR == i_rc )
             {
                 printToLog(logF, ipAddress, "error while reordering local KV store");
@@ -1500,6 +1503,7 @@ int localKVReorderFunc()
             {
                 printToLog(logF, ipAddress, "SUCCESSFULLY REORDERED LOCAL KV STORE");
             }
+            */
         }
 
     } // End of while(1)
@@ -1545,7 +1549,7 @@ int printKVStore()
         printf("\t\t1)PRINT KV STORE\n");
         printf("\t\t2)PRINT MEMBERSHIP LIST\n");
         printf("\t\t$");
-        scanf("%d", input);
+        scanf("%d", &input);
         if ( (1 == input) ) 
             iterate_hash_table();
         else if ( (2 == input) ) 
@@ -1555,7 +1559,7 @@ int printKVStore()
     }
 
   rtn:
-    funcExit(logF, ipAddress, "printKVStore");
+    funcExit(logF, ipAddress, "printKVStore", rc);
     return rc;
 
 } // End of printKVStore()
@@ -1633,7 +1637,7 @@ int main(int argc, char *argv[])
     /*
      * Init local host heart beat table
      */
-    initialize_table(portNo, ipAddress, host_no);
+    initialize_table(portNo, ipAddress, host_no, "1234");
     printToLog(logF, ipAddress, "Initialized my table");
 
     /*
@@ -1641,7 +1645,7 @@ int main(int argc, char *argv[])
      * the hash table 
      */
     i_rc = initialize_local_key_value_store();
-    if ( i_rc != IERR_OK )
+    if ( i_rc != SUCCESS )
     {
          sprintf(logMsg, "Unable to initialize local key value store at IP Address %s and host no %d", ipAddress, host_no);
          printf("\n%s\n", logMsg);
