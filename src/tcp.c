@@ -77,7 +77,10 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp,
     printToLog(logF, ipAddress, "ACCEPT SUCCESSFUL IN RECV TCP");
     printToLog(logF, ipAddress, "I AM HERE WAITING FOR RECVTCP ************************************");
 
-    numOfBytesRec = recv(new_tcp, buffer, length, 0);
+    if (acceptOrNot)
+        numOfBytesRec = recv(new_tcp, buffer, length, 0);
+    else
+        numOfBytesRec = recv(tcp, buffer, length, 0);
     //network_to_host(buffer);
 
     if (acceptOrNot)
