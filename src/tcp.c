@@ -111,7 +111,7 @@ int recvTCP(char *buffer, int length, struct sockaddr_in hostAddr, int *ret_tcp,
  * (int) bytes sent 
  * 
  ****************************************************************/
-int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp)
+int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp, int connectOrNot)
 {
 
     funcEntry(logF, ipAddress, "sendUDP");
@@ -120,22 +120,25 @@ int sendTCP(int portNo, char * ipAddr, char * buffer, int new_tcp)
 
     struct sockaddr_in hostAddr;        // Address of host to send message
 
-    sprintf(logMsg, "port no : %d ip address : %s new TCP : %d", portNo, ipAddr, new_tcp);
+    sprintf(logMsg, "port no : %d ip address : %s new TCP : %d connectOrNot : %d", portNo, ipAddr, new_tcp, connectOrNot);
     printToLog(logF, ipAddress, logMsg);
 
-    memset(&hostAddr, 0, sizeof(struct sockaddr_in));
-    hostAddr.sin_family = AF_INET;
-    hostAddr.sin_port = htons(portNo);
-    hostAddr.sin_addr.s_addr = inet_addr(ipAddr);
-    memset(&(hostAddr.sin_zero), '\0', 8);
-
-    if ( connect( new_tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
+    if (connectOrNot)
     {
-        strcpy(logMsg, "Cannot connect to server");
-        printToLog(logF, ipAddress, logMsg);
-        printf("\n%s\n", logMsg);
-        numOfBytesSent = 0;
-        goto rtn;
+        memset(&hostAddr, 0, sizeof(struct sockaddr_in));
+        hostAddr.sin_family = AF_INET;
+        hostAddr.sin_port = htons(portNo);
+        hostAddr.sin_addr.s_addr = inet_addr(ipAddr);
+        memset(&(hostAddr.sin_zero), '\0', 8);
+
+        if ( connect( new_tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
+        {
+            strcpy(logMsg, "Cannot connect to server");
+            printToLog(logF, ipAddress, logMsg);
+            printf("\n%s\n", logMsg);
+            numOfBytesSent = 0;
+            goto rtn;
+        }
     }
                
     //host_to_network(buffer);

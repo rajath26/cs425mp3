@@ -589,7 +589,7 @@ int createAndSendOpMsg()
             }
             sprintf(logMsg, "port no: %d ip address %s", atoi(serverPortNo), clientIpAddr);
             printToLog(logF, ipAddress, logMsg);
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -615,7 +615,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -641,7 +641,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -667,7 +667,7 @@ int createAndSendOpMsg()
                 rc = ERROR;
                 goto rtn;
             }
-            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp);
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend, tcp, 1);
             if ( SUCCESS == numOfBytesSent )
             {
                 printf("\nZERO BYTES SENT\n");
@@ -797,6 +797,7 @@ int main(int argc, char *argv[])
     }
 
   rtn:
+    close(tcp);
     return rc;
 
 } // End of main()

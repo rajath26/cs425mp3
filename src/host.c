@@ -1215,7 +1215,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-			  numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+			  numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
 			  if ( SUCCESS == numOfBytesSent )
 			  {
                               printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1240,7 +1240,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-			 numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+			 numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
 	                 if ( SUCCESS == numOfBytesSent )
 		         {
 			     printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1270,7 +1270,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1295,7 +1295,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating DELETE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1325,7 +1325,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1348,7 +1348,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1379,7 +1379,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1404,7 +1404,7 @@ int receiveKVFunc()
                               printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
                               continue;
                           }
-                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp);
+                         numOfBytesSent = sendTCP(atoi(temp->port), temp->IP, retMsg, new_tcp, 0);
                          if ( SUCCESS == numOfBytesSent )
                          {
                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
@@ -1456,7 +1456,7 @@ int receiveKVFunc()
              strcpy(ipAddrPN, hb_table[index].IP);
 
              // Send the received message to the hashed peer node
-             numOfBytesSent = sendTCP(portPN, ipAddrPN, recMsg, tcp);
+             numOfBytesSent = sendTCP(portPN, ipAddrPN, recMsg, tcp, 1);
              if ( SUCCESS == numOfBytesSent )
              {
                  printToLog(logF, ipAddress, "ZERO BYTES SENT");
