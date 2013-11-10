@@ -104,7 +104,7 @@ int sendTCP(int portNo, char * ipAddr, char * buffer)
     if ( connect( tcp, (struct sockaddr *) &hostAddr, sizeof(hostAddr) ) < SUCCESS )
     {
         strcpy(logMsg, "Cannot connect to server");
-        printToLog(logF, ipAddres, logMsg);
+        printToLog(logF, ipAddress, logMsg);
         printf("\n%s\n", logMsg);
         numOfBytesSent = 0;
         goto rtn;

@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "../inc/KVclient.h"
+#include "key_value_store.c"
+#include "tcp.c"
 
 /* 
  * Function defintions
@@ -86,7 +88,8 @@ int KVClient_CLA_check(int argc, char *argv[])
 int setUpTCP(char * portNo, char * ipAddress)
 {
 
-    int rc = SUCCESS;
+    int rc = SUCCESS,
+        i_rc;
 
     tcp = socket(AF_INET, SOCK_STREAM, 0);
     if ( ERROR == tcp )
@@ -117,6 +120,9 @@ int setUpTCP(char * portNo, char * ipAddress)
     }
 
     listen(tcp, LISTEN_QUEUE_LENGTH);
+
+  rtn:
+    return rc;
 
 } // End of setUpTCP()
 
@@ -215,12 +221,8 @@ void * startKelsa(void *threadNum)
 
         default:
         printf("\nDefault CASE. An ERROR\n");
-        rc = ERROR;
-        goto rtn;
         break;
     }
-
-  rtn:
 
 } // End of startKelsa()
 
@@ -244,11 +246,12 @@ int clientReceiveFunc()
 {
 
     int rc = SUCCESS,
-        numOfBytesRec;
+        numOfBytesRec,
+        i_rc;
 
     char recMsg[LONG_BUF_SZ];
 
-    struct sockaddr_in hostAddress();
+    struct sockaddr_in serverAddress;
 
     struct op_code *temp = NULL;
 
@@ -259,19 +262,21 @@ int clientReceiveFunc()
         numOfBytesRec = 0;
         temp = NULL;
 
-        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, &serverAddress);
+        numOfBytesRec = recvTCP(recMsg, LONG_BUF_SZ, serverAddress);
         // Check if 0 bytes is received 
         if ( SUCCESS == numOfBytesRec )
         {
             printf("\nNumber of bytes received is ZERO = %d\n", numOfBytesRec);
-            continue;
+            rc = ERROR;
+            goto rtn; 
         }
 
         i_rc = extract_message_op(recMsg, &temp);
         if ( ERROR == i_rc )
         {
             printf("\nUnable to extract received message. Return code of extract_message_op = %d\n", i_rc);
-             continue;
+            rc = ERROR;
+            goto rtn; 
         }
 
         switch( temp->opcode )
@@ -282,7 +287,6 @@ int clientReceiveFunc()
                 printf("\t\tSUCCESSFUL LOOKUP\n");
                 printf("\t\tKEY: %d - VALUE: %s\n", temp->key, temp->value);
                 printf("\t\t****************\n");
-                continue;
             break;
 
             case INSERT_RESULT:
@@ -290,7 +294,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL INSERT\n");
                 printf("\t\t****************\n");
-                continue;
             break;
  
             case DELETE_RESULT:
@@ -298,7 +301,6 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL DELETE\n");
                 printf("\t\t****************\n");
-                continue;
             break;
 
             case UPDATE_RESULT:
@@ -306,22 +308,20 @@ int clientReceiveFunc()
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tSUCCESSFUL UPDATE\n");
                 printf("\t\t****************\n");
-                continue;
- 
             break;
 
-            case ERROR:
+            case ERROR_RESULT:
                 printf("\n");
                 printf("\t\t*****RESULT*****\n");
                 printf("\t\tERROR DURING OPERATION. TRY AGAIN\n");
                 printf("\t\t****************\n");
-                continue;
             break;
 
             default:
                 // We shouldn't be here 
                 printf("\nGot something else apart from result and I am not supposed to be getting this. Damn it!!!! Default case in switch\n");
-                continue;
+                rc = ERROR;
+                goto rtn;
         } // End of switch( temp->opcode )
 
   rtn:
@@ -348,7 +348,8 @@ int clientReceiveFunc()
 int clientSenderFunc()
 {
 
-    int rc = SUCCESS;
+    int rc = SUCCESS,
+        i_rc;
 
     // Parse the received KV client command 
     i_rc = parseKVClientCmd();
@@ -411,7 +412,7 @@ int parseKVClientCmd()
     char *token; 
 
     // OP CODE
-    token = strtok(KVClientCmd, ":::");
+    token = strtok(KVclientCmd, ":::");
     if ( token != NULL )
     { 
         strcpy(opCode, token);
@@ -491,14 +492,30 @@ int createAndSendOpMsg()
 
     int rc = SUCCESS,
         i_rc,
-        numOfBytesSent;
+        numOfBytesSent,
+        opCodeInt;
+
+    if ( 0 == strcmp (opCode, "INSERT") )
+        opCodeInt = INSERT_KV;
+    else if ( 0 == strcmp (opCode, "LOOKUP") )
+        opCodeInt = LOOKUP_KV;
+    else if ( 0 == strcmp (opCode, "DELETE") )
+        opCodeInt = DELETE_KV;
+    else if ( 0 == strcmp (opCode, "UPDATE") )
+        opCodeInt = UPDATE_KV;
+    else 
+    {
+        printf("\nInvalid OP CODE\n");
+        rc = ERROR;
+        goto rtn;
+    }
 
     msgToSend = NULL;
 
-    switch(opCode)
+    switch(opCodeInt)
     {
 
-        case "INSERT":
+        case INSERT_KV:
 
             i_rc = create_message_INSERT(atoi(key), value, &msgToSend);
             if ( ERROR == i_rc )
@@ -524,7 +541,7 @@ int createAndSendOpMsg()
   
         break;
 
-        case "LOOKUP":
+        case LOOKUP_KV:
            
             i_rc = create_message_LOOKUP(atoi(key), &msgToSend);
             if ( ERROR == i_rc )
@@ -550,7 +567,7 @@ int createAndSendOpMsg()
 
         break;
 
-        case "UPDATE":
+        case UPDATE_KV:
    
             i_rc = create_message_UPDATE(atoi(key), value, &msgToSend);
             if ( ERROR == i_rc )
@@ -576,7 +593,7 @@ int createAndSendOpMsg()
  
         break;
 
-        case "DELETE":
+        case DELETE_KV:
 
             i_rc = create_message_DELETE(atoi(key), &msgToSend);
             if ( ERROR == i_rc )
@@ -676,8 +693,10 @@ int main(int argc, char *argv[])
     strcpy(clientIpAddr, argv[2]);
     memset(serverPortNo, '\0', SMALL_BUF_SZ);  
     strcpy(serverPortNo, argv[3]);
-    memset(KVClientCmd, '\0', LONG_BUF_SZ);
-    strcpy(KVClientCmd, argv[4]);
+    memset(KVclientCmd, '\0', LONG_BUF_SZ);
+    strcpy(KVclientCmd, argv[4]);
+
+    strcpy(ipAddress, clientIpAddr);
 
     /*
      * Set up TCP 

@@ -2,8 +2,13 @@
 #include<stdlib.h>
 #include<string.h>
 #include<glib.h>
+<<<<<<< HEAD
 #include"message_table.c"
 #include"tcp.c"
+=======
+//#include"message_table.c"
+//#include"../inc/tcp.h"
+>>>>>>> ec43985134a51bf29d9a78f88d0abb67f6d7cde4
 #include <sys/types.h>
 #include <sys/socket.h>
 //#include <netinet/in.h>
@@ -448,7 +453,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			
 
 // replace host_id to hash_id of the host
-
+/*
 void main(){
 
    int   i_rc = logFileCreate(LOG_FILE_LOCATION);
@@ -495,7 +500,7 @@ void main(){
     i++;
     free(temp);
    }
-
+*/
 /*   
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
@@ -818,7 +823,7 @@ int m=0;
  //  free(msg2);
 */
    
-
+/*
    printf("===================================================\n");
    printf("====================hash table creation============\n");
 
@@ -843,4 +848,4 @@ int m=0;
 }          	
 		   
  
-        
+ */       

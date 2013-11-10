@@ -45,6 +45,7 @@
  */
 extern char ipAddress[SMALL_BUF_SIZE];
 extern char portNo[SMALL_BUF_SIZE];
+//char logMsg[LONG_BUF_SZ];
 
 /*  
  * Function declarations
