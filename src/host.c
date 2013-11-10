@@ -934,7 +934,8 @@ int receiveKVFunc()
         resultOpCode = 0,
         numOfBytesRec,
         index, 
-        numOfBytesSent;
+        numOfBytesSent,
+        peerSocket;
 
     char recMsg[LONG_BUF_SZ],
          * retMsg, 
@@ -1334,8 +1335,6 @@ int receiveKVFunc()
 	 else 
 	 {
          
-             int peerSocket;
-
              struct sockaddr_in peerNodeAddr;
 
              char response[LONG_BUF_SZ];
@@ -1405,12 +1404,13 @@ int receiveKVFunc()
 
 	 } // End of else of if ( hash_index == my_hash_index )
 
+         close(clientFd);
+         close(peerSocket);
+
     } // End of for(;;)
 
   rtn:
     funcExit(logF, ipAddress, "receiveKCFunc", rc);
-    close(clientFd);
-    close(peerSocket);
     return rc;
 
 } // End of receiveKVFunc()

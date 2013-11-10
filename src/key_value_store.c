@@ -80,6 +80,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                delete_key_value_from_store(atoi((char *)key));
          }
       rtn:
+         close(sd);
          funcExit(logF,NULL,"prepare_system_for_leave",0);
 }
 
@@ -134,6 +135,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          int i = choose_host_hb_index(atoi((char*)key));         
          int i_rc;
          int numOfBytesSent;
+         int sd;
          char port[20];
          char IP[100];
          char message=0x0;
@@ -153,7 +155,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
              create_message_INSERT((char *)key,(char *)value,&message);
              append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);         
              //sendKV:
-               int sd = socket(AF_INET, SOCK_STREAM, 0);
+               sd = socket(AF_INET, SOCK_STREAM, 0);
                if ( -1 == sd )
                {
                     printf("\nUnable to open socket in prepare_system_for_leave\n");
@@ -187,6 +189,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          }
 
        rtn:
+        close(sd);
         funcExit(logF,NULL,"process_key_value",0);
 }
 void reorganize_key_value_store(){
