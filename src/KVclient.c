@@ -754,6 +754,9 @@ int main(int argc, char *argv[])
      */
     memset(clientPortNo, '\0', SMALL_BUF_SZ);
     strcpy(clientPortNo, argv[1]);
+    printToLog(logF, ipAddress, "CLIENT PORT NO******************");
+    printToLog(logF, ipAddress, argv[1]);
+    printToLog(logF, "BUFFER", clientPortNo);
     memset(clientIpAddr, '\0', SMALL_BUF_SZ);
     strcpy(clientIpAddr, argv[2]);
     memset(serverPortNo, '\0', SMALL_BUF_SZ);  
