@@ -36,6 +36,7 @@
  *                            i) port no
  *                            ii) Ip Address of host
  *                            iii) port no of server 
+ *                            iv) KV Client Command
  * 
  * RETURN:
  * (int) ZERO if success
@@ -50,7 +51,14 @@ int KVClient_CLA_check(int argc, char *argv[])
     if ( argc != CLIENT_NUM_OF_CL_ARGS )
     {
         printf("\nInvalid usage\n");
-        printf("\nUsage information: %s <port_no> <ip_address> <server_port>", argv[0]);
+        printf("\nUsage information: %s <port_no> <ip_address> <server_port> <KV_client_command>\n", argv[0]);
+        printf("\t\t-> KV Functionalities / OP_CODE\n");
+        printf("\t\ti) INSERT\n"); 
+        printf("\t\tii) LOOKUP\n");
+        printf("\t\tiii) UPDATE\n");
+        printf("\t\tiv) DELETE\n");
+        printf("\t\t-> COMMAND FORMAT\n");
+        printf("\t\t<OP_CODE>:::<key>:::<value>\n");
         rc = ERROR;
         goto rtn;
     }
@@ -213,7 +221,6 @@ void * startKelsa(void *threadNum)
     }
 
   rtn:
-    return rc
 
 } // End of startKelsa()
 
@@ -245,8 +252,7 @@ int clientReceiveFunc()
 
     struct op_code *temp = NULL;
 
-    for (;;)
-    {
+    // The design is to execute client each time for each operation
 
         memset(recMsg, '\0', LONG_BUF_SZ);
         memset(&serverAddress, 0, sizeof(struct sockaddr_in));
@@ -271,39 +277,345 @@ int clientReceiveFunc()
         switch( temp->opcode )
         { 
             case LOOKUP_RESULT:
-                printf("\nSUCCESSFUL LOOKUP
-
+                printf("\n");
+                printf("\t\t*****RESULT*****\n");
+                printf("\t\tSUCCESSFUL LOOKUP\n");
+                printf("\t\tKEY: %d - VALUE: %s\n", temp->key, temp->value);
+                printf("\t\t****************\n");
+                continue;
             break;
 
             case INSERT_RESULT:
-        
+                printf("\n");
+                printf("\t\t*****RESULT*****\n");
+                printf("\t\tSUCCESSFUL INSERT\n");
+                printf("\t\t****************\n");
+                continue;
             break;
  
             case DELETE_RESULT:
-
+                printf("\n");
+                printf("\t\t*****RESULT*****\n");
+                printf("\t\tSUCCESSFUL DELETE\n");
+                printf("\t\t****************\n");
+                continue;
             break;
 
             case UPDATE_RESULT:
+                printf("\n");
+                printf("\t\t*****RESULT*****\n");
+                printf("\t\tSUCCESSFUL UPDATE\n");
+                printf("\t\t****************\n");
+                continue;
  
             break;
 
             case ERROR:
-
+                printf("\n");
+                printf("\t\t*****RESULT*****\n");
+                printf("\t\tERROR DURING OPERATION. TRY AGAIN\n");
+                printf("\t\t****************\n");
+                continue;
             break;
 
             default:
                 // We shouldn't be here 
-                printf("\nDefault case in switch\n");
+                printf("\nGot something else apart from result and I am not supposed to be getting this. Damn it!!!! Default case in switch\n");
                 continue;
         } // End of switch( temp->opcode )
-
-    } // End of for(;;)
 
   rtn:
     return rc;
 
 } // End of clientReceiveFunc()
 
+/****************************************************************
+ * NAME: clientSenderFunc 
+ *
+ * DESCRIPTION: This is the function that takes care:
+ *              i) Parse the KV client command 
+ *              ii) create message based on choice 
+ *              iii) choose peer node to send the request
+ *              iv) send the request
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int clientSenderFunc()
+{
+
+    int rc = SUCCESS;
+
+    // Parse the received KV client command 
+    i_rc = parseKVClientCmd();
+    if ( ERROR == i_rc ) 
+    {
+        printf("\nUnable to parse Daisy KV Client Command\n");
+        rc = ERROR;
+        goto rtn;
+    }
+
+    // Create message based on OP CODE
+    i_rc = createAndSendOpMsg();
+    if ( ERROR == i_rc )
+    {
+        printf("\nUnable to create and send message based on op code\n");
+        rc = ERROR;
+        goto rtn;
+    }
+
+  rtn:
+    return rc;
+
+} // End of clientSenderFunc()
+
+/****************************************************************
+ * NAME: parseKVClientCmd 
+ *
+ * DESCRIPTION: This function parses the KV client command and from it
+ *              tokenizes the OP_CODE, key and value 
+ *              -> KV Functionalities / OP_CODE
+ *              i) INSERT
+ *              ii) LOOKUP
+ *              iii) UPDATE
+ *              iv) DELETE
+ * 
+ *              -> COMMAND FORMAT
+ *              <OP_CODE>:::<key>:::<value>
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int parseKVClientCmd()
+{
+
+    int rc = ERROR;
+
+    int opCodeSet = 0,
+        keySet = 0,
+        valueSet = 0,
+        insert = 0,
+        lookup = 0,
+        update = 0,
+        delete = 0,
+        invalidOpCode = 0;
+
+    char *token; 
+
+    // OP CODE
+    token = strtok(KVClientCmd, ":::");
+    if ( token != NULL )
+    { 
+        strcpy(opCode, token);
+        opCodeSet = 1;
+        if ( (strcasecmp(opCode, "INSERT") == 0) )
+            insert = 1;
+        else if ( SUCCESS == strcasecmp(opCode, "LOOKUP") )
+            lookup = 1;
+        else if ( SUCCESS == strcasecmp(opCode, "UPDATE") )
+            update = 1;
+        else if ( SUCCESS == strcasecmp(opCode, "DELETE") )
+            delete = 1;
+        else
+        {
+            invalidOpCode = 1;
+            rc = ERROR;
+            goto rtn;
+        }
+        printf("\nPASSED OP CODE is %s\n", opCode);
+    }
+
+    // KEY
+    token = strtok(NULL, ":::");
+    if ( token != NULL )
+    {
+         strcpy(key, token);
+         keySet = 1;
+         printf("\nKEY: %s\n", key);
+    }
+
+    // VALUE 
+    if (insert || update)
+    {
+        token = strtok(NULL, ":::");
+        if ( token != NULL )
+        {
+            strcpy(value, token);
+            valueSet = 1;
+            printf("\nVALUE: %s\n", value);
+        }
+    }
+
+    if ( (insert && keySet && valueSet) || (lookup && keySet && !valueSet) || (update && keySet && valueSet) || (delete && keySet && !valueSet) )
+    {
+        rc = SUCCESS;
+        goto rtn;
+    }
+    else 
+    {
+        rc = ERROR;
+        printf("\nINVALID SYNTAX\n");
+    }
+
+  rtn:
+    if (invalidOpCode)
+        printf("\nINVALID OP CODE. TRY AGAIN!!!");
+    return rc;
+   
+} // End of parseKVClientCmd()
+
+/****************************************************************
+ * NAME: createAndSendOpMsg 
+ *
+ * DESCRIPTION: This function creates message based on op code 
+ *              containing key value to be sent to the local 
+ *              server
+ *              
+ * PARAMETERS: NONE 
+ *
+ * RETURN:
+ * (int) ZERO if success
+ *       ERROR otherwise
+ * 
+ ****************************************************************/
+int createAndSendOpMsg()
+{
+
+    int rc = SUCCESS,
+        i_rc,
+        numOfBytesSent;
+
+    msgToSend = NULL;
+
+    switch(opCode)
+    {
+
+        case "INSERT":
+
+            i_rc = create_message_INSERT(atoi(key), value, &msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create insert message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create insert message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            if ( SUCCESS == numOfBytesSent )
+            {
+                printf("\nZERO BYTES SENT\n");
+                rc = ERROR;
+                goto rtn;
+            }
+  
+        break;
+
+        case "LOOKUP":
+           
+            i_rc = create_message_LOOKUP(atoi(key), &msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create lookup message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create lookup message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            if ( SUCCESS == numOfBytesSent )
+            {
+                printf("\nZERO BYTES SENT\n");
+                rc = ERROR;
+                goto rtn;
+            }
+
+        break;
+
+        case "UPDATE":
+   
+            i_rc = create_message_UPDATE(atoi(key), value, &msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create update message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create update message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            if ( SUCCESS == numOfBytesSent )
+            {
+                printf("\nZERO BYTES SENT\n");
+                rc = ERROR;
+                goto rtn;
+            }
+ 
+        break;
+
+        case "DELETE":
+
+            i_rc = create_message_DELETE(atoi(key), &msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create delete message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            i_rc = append_port_ip_to_message(clientPortNo, clientIpAddr, msgToSend);
+            if ( ERROR == i_rc )
+            {
+                printf("\nUnable to create delete message\n");
+                rc = ERROR;
+                goto rtn;
+            }
+            numOfBytesSent = sendTCP(atoi(serverPortNo), clientIpAddr, msgToSend);
+            if ( SUCCESS == numOfBytesSent )
+            {
+                printf("\nZERO BYTES SENT\n");
+                rc = ERROR;
+                goto rtn;
+            }
+
+        break;
+
+        default:
+
+            printf("\nINVALID OP CODE\n");
+            rc = ERROR;
+            goto rtn;
+
+        break;
+
+    } // End of switch(opCode)
+
+  rtn:
+    return rc;
+
+} // End of createAndSendOpMsg()
 
 /*
  * Main function
@@ -337,6 +649,14 @@ int main(int argc, char *argv[])
          clientPortNo[SMALL_BUF_SZ],       // Client Port No
          FEPortNo[SMALL_BUF_SZ];           // Front End Port No
 
+    printf("\n");
+    printf("\t\t***************************************\n");
+    printf("\t\t***************************************\n");
+    printf("\t\tWelcome to the Embedded Daisy KV client\n");
+    printf("\t\t***************************************\n");
+    printf("\t\t***************************************\n");
+    printf("\n");
+
     /*
      * Commannd line arguments check 
      */ 
@@ -354,7 +674,10 @@ int main(int argc, char *argv[])
     strcpy(clientPortNo, argv[1]);
     memset(clientIpAddr, '\0', SMALL_BUF_SZ);
     strcpy(clientIpAddr, argv[2]);
-    memset(serverPortNo, '\0', SMALL_BUF_SZ); 
+    memset(serverPortNo, '\0', SMALL_BUF_SZ);  
+    strcpy(serverPortNo, argv[3]);
+    memset(KVClientCmd, '\0', LONG_BUF_SZ);
+    strcpy(KVClientCmd, argv[4]);
 
     /*
      * Set up TCP 

@@ -159,7 +159,7 @@ int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
                    funcEntry(logF,NULL,"create_message_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
-                   *message = buffer;
+                   *message = buffer:
                    funcExit(logF,NULL,"create_message_RESULT_SUCCESS",0);
                    return 0;
 }
