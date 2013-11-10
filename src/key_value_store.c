@@ -56,6 +56,8 @@ void prepareNodeForSystemLeave(){
          hb_table[host_no].valid = 0;
          hb_table[host_no].status = 0;
          update_host_list();
+         guint m = g_hash_table_size(key_value_store);
+          if(m==0)return;
          g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
          funcExit(logF,NULL,"prepareNodeForSystemLeave",0);
 }
@@ -107,36 +109,44 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          struct op_code *temp = NULL;
          strcpy(port,hb_table[i].port);
          strcpy(IP,hb_table[i].IP);
-
-         // if 'i' not equal to host number
+          
+          guint m = g_hash_table_size(key_value_store);
+          if(m==0)return;
+        
          // delete_key_value_from_store(atoi((char *)key));
-
-         create_message_INSERT((char *)key,(char *)value,&message);
-         append_port_ip_to_message(port,IP,message);         
-         sendKV:
-          //  numOfBytesSent = sendTCP(port, IP, message);
-            if ( 0 == numOfBytesSent )
-            {
+         if(i!=host_no){
+             create_message_INSERT((char *)key,(char *)value,&message);
+             append_port_ip_to_message(port,IP,message);         
+             sendKV:
+             int  numOfBytesSent = sendTCP(port, IP, message);
+             if ( 0 == numOfBytesSent )
+             {
                 printToLog(logF, IP, "ZERO BYTES SENT");
                 goto sendKV;
-            }
+             }
            // recvTCP(recMsg, 4096, &address);
           //  i_rc = extract_messsage_op(recMsg, &temp);
-            if ( -1 == i_rc )
-            {
+             if ( -1 == i_rc )
+             {
                 printToLog(logF, IP, "extract_message_op failed");
                 return;
-            }
-            if ( temp->opcode != 6 )
-            {
+             }
+             if ( temp->opcode != 6 )
+             {
                 printToLog(logF, IP, "Insertion failed. Retry send");
                 goto sendKV;
             }
-         funcExit(logF,NULL,"process_key_value",0);
+            delete_key_value_from_store(atoi((char *)key));
+           //funcExit(logF,NULL,"process_key_value",0);
+         }
+        funcExit(logF,NULL,"process_key_value",0);
 }
 void reorganize_key_value_store(){
          funcEntry(logF,NULL,"reorganize_key_value_store");
+         guint m = g_hash_table_size(key_value_store);
+         if(m==0) return;
          g_hash_table_foreach(key_value_store,process_key_value,NULL);
+         reOrderTrigger=0;         
          funcExit(logF,NULL,"reorganize_key_value_store",0);
 }
 

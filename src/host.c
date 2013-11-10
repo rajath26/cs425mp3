@@ -61,7 +61,7 @@ int CLA_checker(int argc, char *argv[])
     if ( argc != NUM_OF_CL_ARGS )
     {
         printf("\nInvalid usage\n");
-        printf("\nUsage information: %s <port_no> <ip_address> <host_type> <host_id>", argv[0]);
+        printf("\nUsage information: %s <port_no> <ip_address> <host_type> <host_id>\n", argv[0]);
         rc = ERROR;
         goto rtn;
     }
