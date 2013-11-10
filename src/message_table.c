@@ -192,6 +192,7 @@ int check_table_for_failed_hosts()
                 }
                 if((timer.tv_sec - cmp_time) >= TREMOVE){
                            delete_entry_table(i);
+                           current_table_count--;
                            sprintf(logMsg1,"Entry %d is being removed at %ld time, time at the last_update is %s\n",i,timer.tv_sec,hb_table[i].time_stamp);  
                            printToLog(logF,ip_Address,logMsg1);
                 }
@@ -434,8 +435,10 @@ int update_table(struct hb_entry *msg_table)
                           current_table_count++;
            }
   }
-  if(current_table_count > prev_table_count){
-                 
+  if(current_table_count != prev_table_count){
+                     reOrderTrigger = 1;
+                     prev_table_count = current_table_count;
+  }
   
   clear_temp_entry_table(msg_table);
   pthread_mutex_unlock(&table_mutex);

@@ -3,7 +3,7 @@
 #include<string.h>
 #include<glib.h>
 #include"message_table.c"
-
+//#include"../inc/tcp.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 //#include <netinet/in.h>
@@ -23,6 +23,7 @@ struct op_code{
              char IP[40];
 };
 
+char* lookup_store_for_key(int);
 
 GQueue* temp_list=0x0;
 GHashTable* key_value_store;
@@ -76,31 +77,23 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          struct op_code *temp = NULL;
          strcpy(port,hb_table[i].port);
          strcpy(IP,hb_table[i].IP);
-
-         // if 'i' not equal to host number
+         guint m = g_hash_table_size(key_value_store);
+       if(m=!0){
+         if(i!=host_no){
          // delete_key_value_from_store(atoi((char *)key));
 
-         create_message_INSERT((char *)key,(char *)value,&message);
-         append_port_ip_to_message(port,IP,message);         
-         sendKV:
-          //  numOfBytesSent = sendTCP(port, IP, message);
-            if ( 0 == numOfBytesSent )
-            {
-                printToLog(logF, IP, "ZERO BYTES SENT");
-                goto sendKV;
+            create_message_INSERT((char *)key,(char *)value,&message);
+            append_port_ip_to_message(port,IP,message);         
+         //   sendkV :
+            numOfBytesSent = sendTCP(port, IP, message);
+            if(0 == numOfBytesSent){
+                 printToLog(logF, IP, "ZERO BYTES SENT");
+               //  goto sendKV;
             }
-           // recvTCP(recMsg, 4096, &address);
-          //  i_rc = extract_messsage_op(recMsg, &temp);
-            if ( -1 == i_rc )
-            {
-                printToLog(logF, IP, "extract_message_op failed");
-                return;
-            }
-            if ( temp->opcode != 6 )
-            {
-                printToLog(logF, IP, "Insertion failed. Retry send");
-                goto sendKV;
-            }
+            delete_key_value_from_store(atoi((char *)key));
+         }
+       }
+         reOrderTrigger = 0;
          funcExit(logF,NULL,"process_key_value",0);
 }
 void reorganize_key_value_store(){
@@ -155,38 +148,28 @@ int insert_key_value_into_store(struct op_code* op_instance){
      funcExit(logF,NULL,"insert_key_value_into_store",0);
 }
 
-int update_key_value_in_store(struct op_code * op_instance)
+int update_key_value_in_store(struct op_code *op_instance)
 {
-
     funcEntry(logF, NULL, "update_key_value_into_store");
-
-    int rc = 0,
-        i_rc;
-
-    char * lookupValue;
-
-    lookupValue = lookup_store_for_key(temp->key);
-    if ( NULL == lookupValue ) 
-    {
-        // Key not found
+    int rc = 0,i_rc;
+    char *lookupValue = lookup_store_for_key(op_instance->key);
+    if ( NULL == lookupValue ) {
         rc = -1;
         goto rtn;
     }
-    else 
-    {
-        i_rc = insert_key_value_into_store(temp);
-        if ( -1 == i_rc )
-        {
+    else{
+        i_rc = insert_key_value_into_store(op_instance);
+        if ( -1 == i_rc ){
             rc = -1;
             goto rtn;
         } 
     }
-
-  rtn:
+ rtn:
     funcExit(logF, NULL, "update_key_value_into_store", rc);
     return rc;
-
 } // End of update_key_value_in_store
+
+
 
 char* lookup_store_for_key(int key){
     
@@ -247,7 +230,7 @@ int create_message_INSERT_RESULT_SUCCESS(int key, char **message){
                    funcEntry(logF,NULL,"create_message_RESULT_SUCCESS");
                    char *buffer = (char *)malloc(300);
                    sprintf(buffer,"INSERT_RESULT_SUCCESS:%d;",key);
-                   *message = buffer:
+                   *message = buffer;
                    funcExit(logF,NULL,"create_message_RESULT_SUCCESS",0);
                    return 0;
 }
