@@ -91,6 +91,8 @@ int choose_host_hb_index(int key)
            printToLog(logF, "GOD DAMN IT", "I AM DONE");
            goto done;
     }
+
+    printToLog(logF, "I AM HERE", "WOOOOO");
     // if hash_value is less than first element in the sorted list
     if(hash_value < ptr[0]){
            result = ptr[0];
