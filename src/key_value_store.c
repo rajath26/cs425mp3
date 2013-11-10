@@ -436,7 +436,7 @@ int extract_message_op(char *message, struct op_code** instance){
 			
 
 // replace host_id to hash_id of the host
-
+/*
 void main(){
 
    int   i_rc = logFileCreate(LOG_FILE_LOCATION);
@@ -483,7 +483,7 @@ void main(){
     i++;
     free(temp);
    }
-
+*/
 /*   
    create_message_DELETE(1234,&msg);
    printf("%s\n",msg);
@@ -806,7 +806,7 @@ int m=0;
  //  free(msg2);
 */
    
-
+/*
    printf("===================================================\n");
    printf("====================hash table creation============\n");
 
@@ -831,4 +831,4 @@ int m=0;
 }          	
 		   
  
-        
+ */       

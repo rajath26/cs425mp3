@@ -43,6 +43,18 @@
 #define ERROR                     -1
 #define CLIENT_NUM_OF_CL_ARGS     5 
 #define NUM_OF_THREADS            2
+#define SMALL_BUF_SZ              100
+#define MED_BUF_SZ                1024
+#define LONG_BUF_SZ               4096
+#define INSERT_KV                 1
+#define LOOKUP_KV                 4 
+#define UPDATE_KV                 3 
+#define DELETE_KV                 2 
+#define LOOKUP_RESULT             5
+#define INSERT_RESULT             6
+#define DELETE_RESULT             7
+#define UPDATE_RESULT             8
+#define ERROR_RESULT              99
 
 /*
  * Global variables
@@ -56,7 +68,7 @@ char opCode[SMALL_BUF_SZ];
 char key[SMALL_BUF_SZ];
 char value[LONG_BUF_SZ];
 char * msgToSend;
-struct sockaddr KVClientAddr;
+struct sockaddr_in KVClientAddr;
 
 /*
  * Function Declarations

@@ -22,6 +22,8 @@
 //#include "logger.c"
 #include "udp.c"
 #include "message_table.c"
+#include "key_value_store.c"
+#include "tcp.c"
 
 /*
  * Function definitions
@@ -1410,7 +1412,7 @@ int receiveKVFunc()
                      // Nothing here as of now 
 		 break;
 
-                 case ERROR:
+                 case ERROR_RESULT:
                      // Nothing here as of now
                  break;
 
