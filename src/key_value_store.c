@@ -117,12 +117,12 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          if(i!=host_no){
              create_message_INSERT((char *)key,(char *)value,&message);
              append_port_ip_to_message(port,IP,message);         
-             sendKV:
+             //sendKV:
              int  numOfBytesSent = sendTCP(port, IP, message);
              if ( 0 == numOfBytesSent )
              {
                 printToLog(logF, IP, "ZERO BYTES SENT");
-                goto sendKV;
+                //goto sendKV;
              }
            // recvTCP(recMsg, 4096, &address);
           //  i_rc = extract_messsage_op(recMsg, &temp);
