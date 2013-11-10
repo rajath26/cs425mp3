@@ -160,8 +160,6 @@ int setUpPorts(char * portNo, char * ipAddress)
 
     printToLog(logF, ipAddress, "TCP bind() successful");
 
-    listen(tcp, LISTEN_QUEUE_LENGTH);
-
   rtn:
     funcExit(logF, ipAddress, "setUpPorts", rc);
     return rc;
@@ -1068,6 +1066,8 @@ int receiveKVFunc()
     struct sockaddr_in receivedFromAddr;  // Predecessor address  
 
     struct op_code *temp = NULL;          // KV OPCODE
+
+    listen(tcp, LISTEN_QUEUE_LENGTH);
 
     for(;;)
     {
