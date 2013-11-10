@@ -714,10 +714,6 @@ int main(int argc, char *argv[])
     int rc = SUCCESS,                      // Return code
         i_rc;                              // Temp RC
 
-    char clientIpAddress[SMALL_BUF_SZ],    // Client IP address
-         clientPortNo[SMALL_BUF_SZ],       // Client Port No
-         FEPortNo[SMALL_BUF_SZ];           // Front End Port No
-
     printf("\n");
     printf("\t\t***************************************\n");
     printf("\t\t***************************************\n");
