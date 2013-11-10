@@ -201,6 +201,28 @@ char* lookup_store_for_key(int key){
      return (char *)value;
 }
 
+int update_key_value_in_store(struct op_code *op_instance)
+{
+    funcEntry(logF, NULL, "update_key_value_into_store");
+    int rc = 0,i_rc;
+    char *lookupValue = lookup_store_for_key(op_instance->key);
+    if ( NULL == lookupValue ) {
+        rc = -1;
+        goto rtn;
+    }
+    else{
+        i_rc = insert_key_value_into_store(op_instance);
+        if ( -1 == i_rc ){
+            rc = -1;
+            goto rtn;
+        } 
+    }
+ rtn:
+    funcExit(logF, NULL, "update_key_value_into_store", rc);
+    return rc;
+} // End of update_key_value_in_store
+
+
 int delete_key_value_from_store(int key){
      funcEntry(logF,NULL,"delete_key_value_from_store");
      pthread_mutex_lock(&key_value_mutex);
