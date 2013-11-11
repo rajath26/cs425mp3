@@ -6,7 +6,7 @@
 
 #
 #
-# USAGE: ./startDaisyFDNode.sh -p <udp_port_no> -q <tcp_port_no> -i <ip_address_of_the_current_server> -t <node_type> -h <host_no>
+# USAGE: ./startDaisyFDNode.sh -p <port_no> -i <ip_address_of_the_current_server> -t <node_type> -h <host_no>
 #
 #
 
