@@ -389,7 +389,7 @@ int print_table(struct hb_entry *table)
    pthread_mutex_lock(&table_mutex);
    for(i=0;i<MAX_HOSTS;i++){
    if(table[i].valid){ 
-   printf("%d\t::\t%s\t::\t%s\t::\t%s\t::\t%d\t\t::\t%s\t\t::\t%d\n",table[i].valid,table[i].host_id,table[i].IP,table[i].port,table[i].tcp_port,table[i].hb_count,table[i].time_stamp,table[i].status);
+   printf("%d\t::\t%s\t::\t%s\t::\t%s\t::\t%d\t\t::\t%s\t\t::\t%d\n",table[i].valid,table[i].host_id,table[i].IP,table[i].port,table[i].hb_count,table[i].time_stamp,table[i].status);
     }
    }
    pthread_mutex_unlock(&table_mutex);
