@@ -121,7 +121,7 @@ int choose_host_hb_index(int key)
    for(i=0;i<MAX_HOSTS;i++){
        if(hb_table[i].valid && hb_table[i].status){
           if(atoi(hb_table[i].host_id)==result){
-                    funcExit(logF,NULL,"choose_host_hb_index",0);
+                    funcExit(logF,NULL,"choose_host_hb_index",i);
                     return i;
           }
        }

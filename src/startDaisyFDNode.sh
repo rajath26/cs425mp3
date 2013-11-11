@@ -38,7 +38,7 @@ done
 if [ $? -eq 0 ]
 then 
     echo -e "\nStarting Node\n"
-    ./daisyFD ${PORT_NO} ${IP_ADDRESS} ${TYPE} ${HOST_NO}
+    ./host ${PORT_NO} ${IP_ADDRESS} ${TYPE} ${HOST_NO}
 fi
 
 #
