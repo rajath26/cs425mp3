@@ -854,7 +854,7 @@ void leaveSystem(int signNum)
 
     prepareNodeForSystemLeave();
     
-    close(udp);
+    //close(udp);
     close(tcp);
 
     funcExit(logF, "Leaving Daisy Distributed System", "leaveSystem", 0);
