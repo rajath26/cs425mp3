@@ -44,7 +44,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          if(m!=0){
                update_host_list();
                int i = choose_host_hb_index(atoi((char*)key));
-               create_message_INSERT((char *)key,(char *)value,&message);
+               create_message_INSERT(atoi((char *)key),(char *)value,&message);
                append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
