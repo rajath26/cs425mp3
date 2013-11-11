@@ -1494,23 +1494,25 @@ int printKVStore()
     printf("\t\t***************************************\n");
     for (;;)
     {
-        memset(input, '\0', 2);
-        printf("\t\tI am a bot and I print the local KV store or my membership list\n");
-        printf("\t\t1)PRINT KV STORE\n");
-        printf("\t\t2)PRINT MEMBERSHIP LIST\n");
-        printf("\t\t$");
+        sleep(5);
+        //memset(input, '\0', 2);
+        printf("\t\tI am a bot and I print the local KV store and my membership list periodically\n");
+        //printf("\t\t1)PRINT KV STORE\n");
+        //printf("\t\t2)PRINT MEMBERSHIP LIST\n");
+        //printf("\t\t$");
         //scanf("%d", &input);
-        fgets(input, 2, stdin);
-        if ( (0 == strcmp(input, "1") ) )
+        //fgets(input, 2, stdin);
+        //if ( (0 == strcmp(input, "1") ) )
             iterate_hash_table();
-        else if ( (0 == strcmp(input, "2") ) )
+        //else if ( (0 == strcmp(input, "2") ) )
+            sleep(5);
             print_table(hb_table);
-        else 
-        {
-            printf("\nInvalid Choice. Try after 15 secs\n");
-            sleep(15);
-            continue;
-        }
+        //else 
+        //{
+            //printf("\nInvalid Choice. Try after 15 secs\n");
+            //sleep(15);
+            //continue;
+        //}
     }
 
   rtn:
