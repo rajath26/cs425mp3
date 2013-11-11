@@ -98,6 +98,13 @@ int choose_host_hb_index(int key)
             result = a[0];
             goto done;
     }
+    if (hash_value == a[member_list->len - 1])
+    {
+         result = a[member_list->len - 1];
+         goto done;
+    }
+
+
     // if hash_value is in between the element list 
     //
     printToLog(logF,"I am here","hello");
@@ -444,7 +451,7 @@ int update_table(struct hb_entry *msg_table)
                           current_table_count++;
            }
   }
-  if(current_table_count != prev_table_count){
+  if(current_table_count != prev_table_count && !reOrderTrigger){
                      printToLog(logF, "SETTING REORDER TRIGGER", "Yay");
                      reOrderTrigger = 1;
                      prev_table_count = current_table_count;

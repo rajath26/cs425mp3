@@ -86,14 +86,14 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
 
 void prepareNodeForSystemLeave(){
          funcEntry(logF,NULL,"preareNodeForSystemLeave");
-         //pthread_mutex_lock(&table_mutex);
+         pthread_mutex_lock(&table_mutex);
          hb_table[host_no].valid = 0;
          hb_table[host_no].status = 0;
          update_host_list();
          guint m = g_hash_table_size(key_value_store);
           if(m==0)return;
          g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
-         //pthread_mutex_unlock(&table_mutex);
+         pthread_mutex_unlock(&table_mutex);
          funcExit(logF,NULL,"prepareNodeForSystemLeave",0);
 }
 
