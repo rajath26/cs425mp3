@@ -849,9 +849,12 @@ void leaveSystem(int signNum)
 
     printToLog(logF, ipAddress, "Preparing the node to leave the Daisy Distributed System");
 
+    // close gossip component first
+    close(udp);
+
     prepareNodeForSystemLeave();
     
-    close(udp);
+    //close(udp);
     close(tcp);
 
     funcExit(logF, "Leaving Daisy Distributed System", "leaveSystem", 0);

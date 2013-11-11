@@ -86,12 +86,14 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
 
 void prepareNodeForSystemLeave(){
          funcEntry(logF,NULL,"preareNodeForSystemLeave");
+         //pthread_mutex_lock(&table_mutex);
          hb_table[host_no].valid = 0;
          hb_table[host_no].status = 0;
          update_host_list();
          guint m = g_hash_table_size(key_value_store);
           if(m==0)return;
          g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
+         //pthread_mutex_unlock(&table_mutex);
          funcExit(logF,NULL,"prepareNodeForSystemLeave",0);
 }
 
@@ -155,7 +157,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
         
          // delete_key_value_from_store(atoi((char *)key));
          if(i!=host_no){
-             create_message_INSERT((char *)key,(char *)value,&message);
+             create_message_INSERT(atoi((char *)key),(char *)value,&message);
              sprintf(logMsg, "PORT: %s, IP : %s , message: %s", hb_table[host_no].port, hb_table[host_no].port, message);
              printToLog(logF, "PROCESS_KEY_VALUE", logMsg);
              append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);         
