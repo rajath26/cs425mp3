@@ -212,6 +212,8 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
 }
 void reorganize_key_value_store(){
          funcEntry(logF,NULL,"reorganize_key_value_store");
+         if (systemIsLeaving)
+             return;
          guint m = g_hash_table_size(key_value_store);
          if(m==0) return;
          g_hash_table_foreach(key_value_store,process_key_value,NULL);

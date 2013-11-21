@@ -852,6 +852,8 @@ void leaveSystem(int signNum)
     // close gossip component first
     //close(udp);
 
+    systemIsLeaving = 1;
+
     prepareNodeForSystemLeave();
     
     //close(udp);
@@ -1527,7 +1529,7 @@ int localKVReorderFunc()
         sprintf(logMsg, "Reorder trigger value: %d", reOrderTrigger);
         printToLog(logF, ipAddress, logMsg);
 
-        if (reOrderTrigger) 
+        if (reOrderTrigger && !systemIsLeaving ) 
         {
             printToLog(logF, "REORGANIZING KV STORE", "REORG");
             reorganize_key_value_store();
