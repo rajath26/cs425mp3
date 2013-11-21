@@ -102,6 +102,9 @@ void prepareNodeForSystemLeave(){
          hb_table[host_no].status = 0;
          update_host_list();
          guint m = g_hash_table_size(key_value_store);
+         sprintf(logMsg, "The Hash table size during leaveSystem is : %d", (int)m);
+         printToLog(logF, "THE HASH TABLE SIZE DURING LEAVESYSTEM IS", logMsg);
+         printf("\n%s\n", logMsg);
           if(m==0)return;
          g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
          pthread_mutex_unlock(&table_mutex);
