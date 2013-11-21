@@ -941,6 +941,8 @@ int receiveKVFunc()
         numOfBytesSent,
         peerSocket;
 
+    register int counter;
+
     char recMsg[LONG_BUF_SZ],
          * retMsg, 
          * lookupValue;
@@ -1037,7 +1039,19 @@ int receiveKVFunc()
          // then no need to hash the key. We should just
          // proceed for a local insert
          if ( (INSERT_LEAVE_KV == temp->opcode) )
+         {
               insertLocal = 1;
+              for ( counter = 0; counter < MAX_HOSTS; counter++ ) 
+              {
+                  if ( ( 0 == strcmp(hb_table[counter].IP, temp->IP) ) && ( 0 == strcmp(hb_table[counter].port, temp->port) ) )
+                  {
+                      pthread_mutex_lock(&table_mutex);
+                      hb_table[counter].valid = 0;
+                      hb_table[counter].status = 0;
+                      pthread_mutex_unlock(&table_mutex);
+                  } // End of if ( ( 0 == strcmp(hb_table[i].IP, temp.IP) ) && ( 0 == strcmp(hb_table[i].port, temp.port) ) )
+              } // End of for ( counter = 0; counter < MAX_HOSTS; counter++ )
+         } // End of if ( (INSERT_LEAVE_KV == temp->opcode) )
 
 	 //////////
 	 // Step iv
