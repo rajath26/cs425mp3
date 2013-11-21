@@ -445,6 +445,7 @@ int update_table(struct hb_entry *msg_table)
               }
        }
   }
+  current_table_count = 0;
 
   for(i=0;i<MAX_HOSTS;i++){
           if(hb_table[i].valid && hb_table[i].status){
