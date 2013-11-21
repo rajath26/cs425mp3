@@ -52,7 +52,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                printf("\n%s\n", logMsg);
                printToLog(logF, "PEER NODE CHOSEN", logMsg);
                perror("socket");
-               int sd = socket(AF_INET, SOCK_STREAM, 0);
+               sd = socket(AF_INET, SOCK_STREAM, 0);
                if ( -1 == sd )
                {
                     sprintf(logMsg, "\nUnable to open socket in prepare_system_for_leave. ERROR NO: %d\n", errno);
@@ -71,7 +71,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                {
                    sprintf(logMsg, "\nCant connect to server in prepare_system_for_leave\n. ERROR NO: %d", errno);
                    printf("\n%s\n", logMsg);
-                   printToLog(logF, "SOCKET ERROR", logMsg);
+                   printToLog(logF, "CONNECT ERROR", logMsg);
                    perror("connect");
                    goto rtn;
                }
