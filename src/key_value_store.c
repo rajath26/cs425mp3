@@ -408,6 +408,17 @@ int create_message_ERROR(char **message){
                    funcExit(logF, NULL,"create_message_ERROR",0);
                    return 0;
 }
+int create_message_INSERT_LEAVE(int key, char *value, char **message){
+                   funcEntry(logF,NULL,"create_message_INSERT_LEAVE");
+                   int len = strlen(value);
+                   char *buffer = (char *)malloc(len+300);
+                   sprintf(buffer,"INSERT_LEAVE:%d:%s;",key,value);
+                   *message = buffer;
+                   funcExit(logF, NULL, "create_message_INSERT_LEAVE",0);
+                   return 0;
+}
+
+
 /*
 struct op_code{
 	     int opcode;
@@ -526,7 +537,22 @@ int extract_message_op(char *message, struct op_code** instance){
 			    funcExit(logF,NULL,"extract_message_op",0);	
                             return 1;
                    }
-                             
+                   if(strcmp(token,"INSERT_LEAVE")==0){
+                            (*instance)->opcode = 9; // 1 is the op-code for insert
+
+                            token=strtok(NULL,delim);  //GET KEY
+                            (*instance)->key = atoi(token);
+
+                            token=strtok(NULL,delim);    //GET VALUE
+                            int len = strlen(token);
+                            char *value_instance = (char *)malloc(len);
+                            strcpy(value_instance,token);
+                            (*instance)->value = value_instance;
+
+                            funcExit(logF,NULL,"extract_message_op",0);
+                            return 1;
+                   }
+                                               
                    if(strcmp(token,"INSERT_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 6;}
                    if(strcmp(token,"DELETE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 7;}
                    if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 8;}
