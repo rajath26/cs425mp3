@@ -31,7 +31,7 @@ pthread_mutex_t key_value_mutex;
 
 
 void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
-         funcEntry(logF,NULL,"preare_system_for_leave");
+         funcEntry(logF,NULL,"prepare_system_for_leave");
        //  int i = choose_host_hb_index(atoi((char*)key));
          char port[20];
          char IP[100];
@@ -96,7 +96,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
 }
 
 void prepareNodeForSystemLeave(){
-         funcEntry(logF,NULL,"preareNodeForSystemLeave");
+         funcEntry(logF,NULL,"prepareNodeForSystemLeave");
          pthread_mutex_lock(&table_mutex);
          hb_table[host_no].valid = 0;
          hb_table[host_no].status = 0;

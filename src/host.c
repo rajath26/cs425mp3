@@ -935,6 +935,7 @@ int receiveKVFunc()
     int rc = SUCCESS,                     // Return code
         i_rc,
         resultOpCode = 0,
+        insertLocal = 0,
         numOfBytesRec,
         index, 
         numOfBytesSent,
@@ -1031,13 +1032,20 @@ int receiveKVFunc()
          if ( (INSERT_RESULT == temp->opcode) || (LOOKUP_RESULT == temp->opcode) || (UPDATE_RESULT == temp->opcode) ||  (DELETE_RESULT == temp->opcode) )
              resultOpCode = 1; 
 
+         // If the received message is 
+         // INSERT_LEAVE_KV
+         // then no need to hash the key. We should just
+         // proceed for a local insert
+         if ( (INSERT_LEAVE_KV == temp->opcode) )
+              insertLocal = 1;
+
 	 //////////
 	 // Step iv
 	 //////////
 	 // Determine where to route the request
 	 // i_rc is the hash index of the host in this case
          // if one of the result op code no need to hash
-         if (!resultOpCode)
+         if (!resultOpCode || !insertLocal)
          {
 
              i_rc = update_host_list();
@@ -1071,10 +1079,10 @@ int receiveKVFunc()
          ///////////
          // If LOCAL 
          ///////////
-	 if ( (atoi(hb_table[index].host_id) == my_hash_value) || resultOpCode )
+	 if ( (atoi(hb_table[index].host_id) == my_hash_value) || resultOpCode || insertLocal )
 	 {
 
-             printToLog(logF, ipAddress, "Local route or result op code");
+             printToLog(logF, ipAddress, "Local route or result op code or insert_leave from a peer node");
 
              // Do the operation on the local key value store 
 	     // based on the KV opcode
@@ -1134,6 +1142,59 @@ int receiveKVFunc()
 			     continue;
 			 }
 		     }
+                 break;
+
+                 case INSERT_LEAVE_KV:
+                     // Insert the KV pair in to the KV store 
+                     i_rc = insert_key_value_into_store(temp);
+                     if ( ERROR == i_rc )
+                     {
+                          sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, temp->value);
+                          printToLog(logF, ipAddress, logMsg);
+                          i_rc = create_message_ERROR(&retMsg);
+                          if ( ERROR == i_rc )
+                          {
+                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+                              continue;
+                          }
+                          i_rc = append_port_ip_to_message(temp->port, temp->IP, retMsg);
+                          if ( ERROR == i_rc )
+                          {
+                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
+                              continue;
+                          }
+                          numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
+                          if ( SUCCESS == numOfBytesSent )
+                          {
+                              printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                              continue;
+                          }
+                     }
+                     // If successful send a success message to the original 
+                     // requestor
+                     else
+                     {
+                         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, temp->value);
+                         printToLog(logF, ipAddress, logMsg);
+                         i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, &retMsg);
+                         if ( ERROR == i_rc )
+                         {
+                             printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
+                             continue;
+                         }
+                         i_rc = append_port_ip_to_message(temp->port, temp->IP, retMsg);
+                          if ( ERROR == i_rc )
+                          {
+                              printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
+                              continue;
+                          }
+                         numOfBytesSent = sendTCP(clientFd, retMsg, sizeof(retMsg));
+                         if ( SUCCESS == numOfBytesSent )
+                         {
+                             printToLog(logF, ipAddress, "ZERO BYTES SENT");
+                             continue;
+                         }
+                     }
                  break;
 
 		 case DELETE_KV:
