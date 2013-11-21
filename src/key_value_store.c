@@ -48,10 +48,17 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
+               sprintf(logMsg, "PEER NODE CHOSEN. IP ADDRESS: %s PORT NO: %s", port, IP);
+               printf("\n%s\n", logMsg);
+               printToLog(logF, "PEER NODE CHOSEN", logMsg);
+               perror("socket");
                int sd = socket(AF_INET, SOCK_STREAM, 0);
                if ( -1 == sd )
                {
-                    printf("\nUnable to open socket in prepare_system_for_leave\n");
+                    sprintf(logMsg, "\nUnable to open socket in prepare_system_for_leave. ERROR NO: %d\n", errno);
+                    printToLog(logF, "SOCKET ERROR", logMsg);
+                    printf("\n%s\n", logMsg);
+                    perror("socket");
                     goto rtn;
                }
                memset(&peer, 0, sizeof(struct sockaddr_in));
@@ -62,7 +69,10 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                i_rc = connect(sd, (struct sockaddr *) &peer, sizeof(peer));
                if ( i_rc != 0 )
                {
-                   printf("\nCant connect to server in prepare_system_for_leave\n");
+                   sprintf(logMsg, "\nCant connect to server in prepare_system_for_leave\n. ERROR NO: %d", errno);
+                   printf("\n%s\n", logMsg);
+                   printToLog(logF, "SOCKET ERROR", logMsg);
+                   perror("connect");
                    goto rtn;
                }
                int numOfBytesSent = sendTCP(sd, message, sizeof(message));
@@ -80,7 +90,8 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                delete_key_value_from_store(atoi((char *)key));
          }
       rtn:
-         close(sd);
+         if ( -1 != sd )
+             close(sd);
          funcExit(logF,NULL,"prepare_system_for_leave",0);
 }
 
