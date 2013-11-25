@@ -946,7 +946,7 @@ int receiveKVFunc()
     register int counter;
 
     char recMsg[LONG_BUF_SZ],
-         * retMsg, 
+         retMsg[LONG_BUF_SZ], 
          * lookupValue;
 
     socklen_t len;
@@ -961,7 +961,7 @@ int receiveKVFunc()
     {
 
          memset(recMsg, '\0', LONG_BUF_SZ);
-         retMsg = NULL;
+         memset(retMsg, '\0', LONG_BUF_SZ);
          lookupValue = NULL;
 
          int clientFd;
@@ -1114,7 +1114,7 @@ int receiveKVFunc()
 		     {
                           sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			  printToLog(logF, ipAddress, logMsg);
-			  i_rc = create_message_ERROR(&retMsg);
+			  i_rc = create_message_ERROR(retMsg);
 			  if ( ERROR == i_rc )
 			  {
 			      printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1139,7 +1139,7 @@ int receiveKVFunc()
 		     {
                          sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-			 i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, &retMsg);
+			 i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, retMsg);
 			 if ( ERROR == i_rc )
 			 {
 			     printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
@@ -1167,7 +1167,7 @@ int receiveKVFunc()
                      {
                           sprintf(logMsg, "There was an ERROR while INSERTING %d = %s KV pair into the local KV store", temp->key, temp->value);
                           printToLog(logF, ipAddress, logMsg);
-                          i_rc = create_message_ERROR(&retMsg);
+                          i_rc = create_message_ERROR(retMsg);
                           if ( ERROR == i_rc )
                           {
                               printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1192,7 +1192,7 @@ int receiveKVFunc()
                      {
                          sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY INSERTED", temp->key, temp->value);
                          printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, &retMsg);
+                         i_rc = create_message_INSERT_RESULT_SUCCESS(temp->key, retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating INSERT_RESULT_SUCCESS_MESSAGE");
@@ -1222,7 +1222,7 @@ int receiveKVFunc()
 		     {
 		         sprintf(logMsg, "There was an ERROR while DELETING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(&retMsg);
+                         i_rc = create_message_ERROR(retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1247,7 +1247,7 @@ int receiveKVFunc()
 		     {
 		         sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY DELETED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_DELETE_RESULT_SUCCESS(temp->key, &retMsg);
+                         i_rc = create_message_DELETE_RESULT_SUCCESS(temp->key, retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating DELETE_RESULT_SUCCESS_MESSAGE");
@@ -1277,7 +1277,7 @@ int receiveKVFunc()
 		     {
                          sprintf(logMsg, "There was an ERROR while UPDATING %d = %s KV pair into the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(&retMsg);
+                         i_rc = create_message_ERROR(retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1300,7 +1300,7 @@ int receiveKVFunc()
 		     {
                          sprintf(logMsg, "KV pair %d = %s SUCCESSFULLY UPDATED", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_UPDATE_RESULT_SUCCESS(temp->key, &retMsg);
+                         i_rc = create_message_UPDATE_RESULT_SUCCESS(temp->key, retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");
@@ -1332,7 +1332,7 @@ int receiveKVFunc()
 		     {
 		         sprintf(logMsg, "There was an ERROR during LOOKUP of %d = %s KV pair in the local KV store", temp->key, temp->value);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_ERROR(&retMsg);
+                         i_rc = create_message_ERROR(retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating ERROR_MESSAGE");
@@ -1357,7 +1357,7 @@ int receiveKVFunc()
 		     {
 		         sprintf(logMsg, "KV pair %d = %s SUCCESSFUL LOOKUP", temp->key, lookupValue);
 			 printToLog(logF, ipAddress, logMsg);
-                         i_rc = create_message_LOOKUP_RESULT(temp->key, lookupValue, &retMsg);
+                         i_rc = create_message_LOOKUP_RESULT(temp->key, lookupValue, retMsg);
                          if ( ERROR == i_rc )
                          {
                              printToLog(logF, ipAddress, "Error while creating UPDATE_RESULT_SUCCESS_MESSAGE");

@@ -542,7 +542,7 @@ int createAndSendOpMsg()
         goto rtn;
     }
 
-    msgToSend = NULL;
+    memset(msgToSend, '\0', LONG_BUF_SZ);
 
     printToLog(logF, ipAddress, "Message before create send");
     printToLog(logF, ipAddress, msgToSend);
@@ -568,7 +568,7 @@ int createAndSendOpMsg()
 
         case INSERT_KV:
 
-            i_rc = create_message_INSERT(atoi(key), value, &msgToSend);
+            i_rc = create_message_INSERT(atoi(key), value, msgToSend);
             printToLog(logF, ipAddress, "Message returned by create_message_INSERT");
             printToLog(logF, ipAddress, msgToSend);
             if ( ERROR == i_rc )
@@ -602,7 +602,7 @@ int createAndSendOpMsg()
 
         case LOOKUP_KV:
            
-            i_rc = create_message_LOOKUP(atoi(key), &msgToSend);
+            i_rc = create_message_LOOKUP(atoi(key), msgToSend);
             if ( ERROR == i_rc )
             {
                 printf("\nUnable to create lookup message\n");
@@ -628,7 +628,7 @@ int createAndSendOpMsg()
 
         case UPDATE_KV:
    
-            i_rc = create_message_UPDATE(atoi(key), value, &msgToSend);
+            i_rc = create_message_UPDATE(atoi(key), value, msgToSend);
             if ( ERROR == i_rc )
             {
                 printf("\nUnable to create update message\n");
@@ -654,7 +654,7 @@ int createAndSendOpMsg()
 
         case DELETE_KV:
 
-            i_rc = create_message_DELETE(atoi(key), &msgToSend);
+            i_rc = create_message_DELETE(atoi(key), msgToSend);
             if ( ERROR == i_rc )
             {
                 printf("\nUnable to create delete message\n");
