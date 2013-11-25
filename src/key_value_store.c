@@ -41,11 +41,12 @@ int prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          int i_rc;
          struct sockaddr_in peer;
          guint m = g_hash_table_size(key_value_store);
-         char *message;
+         char message[4096];
          if(m!=0){
                update_host_list();
                int i = choose_host_hb_index(atoi((char*)key));
-               create_message_INSERT_LEAVE(atoi((char *)key),(char *)value,&message);
+               memset(message, '\0', 4096);
+               create_message_INSERT_LEAVE(atoi((char *)key),(char *)value,message);
                append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);
                strcpy(port,hb_table[i].port);
                strcpy(IP,hb_table[i].IP);
@@ -168,7 +169,7 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
          int sd;
          char port[20];
          char IP[100];
-         char *message=0x0;
+         char message[4096];
          char recMsg[4096];
          char response[4096];
          struct sockaddr_in peer;
@@ -182,7 +183,8 @@ void process_key_value(gpointer key,gpointer value, gpointer dummy){
         
          // delete_key_value_from_store(atoi((char *)key));
          if(i!=host_no){
-             create_message_INSERT(atoi((char *)key),(char *)value,&message);
+             memset(message, '\0', 4096);
+             create_message_INSERT(atoi((char *)key),(char *)value,message);
              sprintf(logMsg, "PORT: %s, IP : %s , message: %s", hb_table[host_no].port, hb_table[host_no].port, message);
              printToLog(logF, "PROCESS_KEY_VALUE", logMsg);
              append_port_ip_to_message(hb_table[host_no].port,hb_table[host_no].IP,message);         
