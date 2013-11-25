@@ -475,10 +475,10 @@ struct hb_entry* extract_message(char *input)
 { 
    funcEntry(logF,ip_Address,"extract_message");
    int j=0; 
-   char a[4][100];
+   char a[MAX_HOSTS][100];
    char *main_entry=input;
    char delim[2]=":";
-   int  no_of_entries = 4;
+   int  no_of_entries = MAX_HOSTS;
    int  i=0;
    char *ptr; 
    ptr=strtok(main_entry,";");
