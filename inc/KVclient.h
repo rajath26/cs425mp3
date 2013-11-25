@@ -142,6 +142,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             strcpy(value_instance,token);
                             (*instance)->value = value_instance;
 
+                            free(original);
+                            free(another_copy);
+
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
                    }
@@ -151,6 +154,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             token = strtok(NULL,delim);  // GET KEY
                             (*instance)->key = atoi(token);
                             (*instance)->value = NULL;
+                          
+                            free(original);
+                            free(another_copy);
 
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
@@ -166,6 +172,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             strcpy(value_instance, token);
                             (*instance)->value = value_instance;
 
+                            free(original);
+                            free(another_copy);
+
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
                    }
@@ -175,6 +184,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             token = strtok(NULL,delim); //get key
                             (*instance)->key = atoi(token);
                             (*instance)->value = NULL;
+
+                            free(original);
+                            free(another_copy);
 
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
@@ -189,6 +201,9 @@ int extract_message_op(char *message, struct op_code** instance){
                             char *value_instance = (char *)malloc(len);
                             strcpy(value_instance, token);
                             (*instance)->value = value_instance;
+ 
+                            free(original);
+                            free(another_copy);
 
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
@@ -200,13 +215,16 @@ int extract_message_op(char *message, struct op_code** instance){
                             strcpy(value_instance,token);
                             (*instance)->value = value_instance;
 
+                            free(original);
+                            free(another_copy);
+
                             funcExit(logF,NULL,"extract_message_op",0);
                             return 1;
                    }
 
-                   if(strcmp(token,"INSERT_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 6;}
-                   if(strcmp(token,"DELETE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 7;}
-                   if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); return 8;}
+                   if(strcmp(token,"INSERT_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); free(original); free(another_copy); return 6;}
+                   if(strcmp(token,"DELETE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); free(original); free(another_copy); return 7;}
+                   if(strcmp(token,"UPDATE_RESULT_SUCCESS")==0){funcExit(logF,NULL,"extract_message_op",0); free(original); free(another_copy); return 8;}
 
 }
 
@@ -221,45 +239,45 @@ int append_port_ip_to_message(char *port,char *ip,char *message){
 }
 
 //upto the caller to free the buffers in create_message_X cases
-int create_message_INSERT(int key, char *value, char **message){
+int create_message_INSERT(int key, char *value, char *message){
                    funcEntry(logF,NULL,"create_message_INSERT");
-                   int len = strlen(value);
-                   char *buffer = (char *)malloc(300);
-                   sprintf(buffer,"INSERT:%d:%s;",key,value);
-                   *message = buffer;
+               //    int len = strlen(value);
+               //    char *buffer = (char *)malloc(300);
+                   sprintf(message,"INSERT:%d:%s;",key,value);
+              //     *message = buffer;
                    funcExit(logF,NULL,"create_message_INSERT",0);
                    return 0;
 }
-int create_message_DELETE(int key, char **message){
+int create_message_DELETE(int key, char *message){
                    funcEntry(logF,NULL,"create_message_DELETE");
-                   char *buffer = (char *)malloc(300);
-                   sprintf(buffer,"DELETE:%d;",key);
-                   *message = buffer;
+              //     char *buffer = (char *)malloc(300);
+                   sprintf(message,"DELETE:%d;",key);
+              //     *message = buffer;
                    funcExit(logF,NULL,"create_message_DELETE",0);
                    return 0;
 }
-int create_message_UPDATE(int key, char *value, char **message){
+int create_message_UPDATE(int key, char *value, char *message){
                    funcEntry(logF,NULL,"create_message_UPDATE");
-                   int len = strlen(value);
-                   char *buffer = (char *)malloc(len+20+100);
-                   sprintf(buffer,"UPDATE:%d:%s;",key,value);
-                   *message = buffer;
+            //       int len = strlen(value);
+            //       char *buffer = (char *)malloc(len+20+100);
+                   sprintf(message,"UPDATE:%d:%s;",key,value);
+            //       *message = buffer;
                    funcExit(logF,NULL,"create_message_UPDATE",0);
                    return 0;
 }
-int create_message_LOOKUP(int key, char **message){
+int create_message_LOOKUP(int key, char *message){
                    funcEntry(logF,NULL,"create_message_LOOKUP");
-                   char *buffer = (char *)malloc(300);
-                   sprintf(buffer,"LOOKUP:%d;",key);
-                   *message = buffer;
+         //          char *buffer = (char *)malloc(300);
+                   sprintf(message,"LOOKUP:%d;",key);
+         //          *message = buffer;
                    funcExit(logF,NULL,"create_message_LOOKUP",0);
                    return 0;
 }
-int create_message_ERROR(char **message){
+int create_message_ERROR(char *message){
                    funcEntry(logF,NULL,"create_message_ERROR");
-                   char *buf = (char *)malloc(300);
-                   strcpy(buf,"ERROR:UNABLE TO COMPLETE THE REQUIRED OPERATION;");
-                   *message = buf;
+           //        char *buf = (char *)malloc(300);
+                   strcpy(message,"ERROR:UNABLE TO COMPLETE THE REQUIRED OPERATION;");
+           //        *message = buf;
                    funcExit(logF, NULL,"create_message_ERROR",0);
                    return 0;
 }
