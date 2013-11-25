@@ -30,9 +30,10 @@ GHashTable* key_value_store;
 pthread_mutex_t key_value_mutex;
 
 
-void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
+int prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          funcEntry(logF,NULL,"prepare_system_for_leave");
        //  int i = choose_host_hb_index(atoi((char*)key));
+         int rc = 1;
          char port[20];
          char IP[100];
          char response[4096];
@@ -51,7 +52,6 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                sprintf(logMsg, "PEER NODE CHOSEN. IP ADDRESS: %s PORT NO: %s", port, IP);
                printf("\n%s\n", logMsg);
                printToLog(logF, "PEER NODE CHOSEN", logMsg);
-               perror("socket");
                sd = socket(AF_INET, SOCK_STREAM, 0);
                if ( -1 == sd )
                {
@@ -59,6 +59,7 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                     printToLog(logF, "SOCKET ERROR", logMsg);
                     printf("\n%s\n", logMsg);
                     perror("socket");
+                    rc = 0;
                     goto rtn;
                }
                memset(&peer, 0, sizeof(struct sockaddr_in));
@@ -73,26 +74,35 @@ void prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
                    printf("\n%s\n", logMsg);
                    printToLog(logF, "CONNECT ERROR", logMsg);
                    perror("connect");
+                   rc = 0;
                    goto rtn;
                }
                int numOfBytesSent = sendTCP(sd, message, sizeof(message));
                if ( 0 == numOfBytesSent )
                {
                    printf("\nZERO BYTES SENT IN prepare_system_for_leave\n");
+                   rc = 0;
                    goto rtn;
                }
                int numOfBytesRec = recvTCP(sd, response, 4096);
                if ( 0 == numOfBytesRec )
                {
                    printf("\nZERO BYTES RECEIVED IN prepare_system_for_leave\n");
+                   rc = 0;
                    goto rtn;
                }
-               delete_key_value_from_store(atoi((char *)key));
+               //delete_key_value_from_store(atoi((char *)key));
+         }
+         else  
+         {
+             // Table is empty return 0
+             rc = 0;
+             goto rtn;
          }
       rtn:
          if ( -1 != sd )
              close(sd);
-         funcExit(logF,NULL,"prepare_system_for_leave",0);
+         funcExit(logF,NULL,"prepare_system_for_leave",rc);
 }
 
 void prepareNodeForSystemLeave(){
@@ -106,7 +116,7 @@ void prepareNodeForSystemLeave(){
          printToLog(logF, "THE HASH TABLE SIZE DURING LEAVESYSTEM IS", logMsg);
          printf("\n%s\n", logMsg);
           if(m==0)return;
-         g_hash_table_foreach(key_value_store,prepare_system_for_leave,NULL);
+         g_hash_table_foreach_remove(key_value_store,prepare_system_for_leave,NULL);
          pthread_mutex_unlock(&table_mutex);
          funcExit(logF,NULL,"prepareNodeForSystemLeave",0);
 }
