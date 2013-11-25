@@ -2,7 +2,7 @@
 
 #define UP 1
 #define DOWN 0
-#define MAX_HOSTS 4
+#define MAX_HOSTS 10 
 #define TFAIL 4 
 #define JOIN_OPCODE 1
 #define LEAVE_OPCODE 2
