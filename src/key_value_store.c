@@ -103,6 +103,7 @@ int prepare_system_for_leave(gpointer key,gpointer value, gpointer dummy){
          if ( -1 != sd )
              close(sd);
          funcExit(logF,NULL,"prepare_system_for_leave",rc);
+         return rc;
 }
 
 void prepareNodeForSystemLeave(){
